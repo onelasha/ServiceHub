@@ -37,7 +37,7 @@ namespace ServiceHub
             }
 
             app.UseHttpsRedirection();
-
+            
             app.UseRouting();
 
             app.UseAuthorization();
