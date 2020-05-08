@@ -1,0 +1,5 @@
+﻿<parameters>
+  <parameter name="IIS Web Application Name" value="ServiceHub" tags="IisApp">
+    <parameterEntry kind="ProviderPath" scope="IisApp" match="^\\\\Mac\\Home\\Documents\\Projects\ Local\\ServiceHub\\ServiceHub\\obj\\Release\\netcoreapp3\.1\\PubTmp\\Out\\$" />
+  </parameter>
+</parameters>

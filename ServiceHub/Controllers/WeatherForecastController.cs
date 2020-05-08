@@ -28,16 +28,26 @@ namespace ServiceHub.Controllers
 
 
         [HttpGet]
-        public IEnumerable<WeatherForecast> Get()
+        public JsonResult Get()
         {
+            var rng = new Random();
+            return new JsonResult( new { success = true, status = "success",  Data = Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            {
+                Date = DateTime.Now.AddDays(index),
+                TemperatureCC = rng.Next(-20, 55),
+                Summary = Summaries[rng.Next(Summaries.Length)]
+            }) });
+
+            /*
             var rng = new Random();
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateTime.Now.AddDays(index),
-                TemperatureC = rng.Next(-20, 55),
+                TemperatureCC = rng.Next(-20, 55),
                 Summary = Summaries[rng.Next(Summaries.Length)]
             })
             .ToArray();
+            */
         }
     }
 }
