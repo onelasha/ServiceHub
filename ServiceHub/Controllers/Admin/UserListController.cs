@@ -16,39 +16,7 @@ using Newtonsoft.Json;
 
 namespace ServiceHub.Controllers
 {
-    public class GIGridColumn
-    {
-        public string Title { get; set; }
-
-        public string DataIndex { get; set; }
-        public string DisplayField { get; set; }
-        public string ValueField { get; set; }
-        public string Width { get; set; }
-        public string Flex { get; set; }
-        public string ValueType { get; set; }
-
-        public string Renderer { get; set; }
-        public bool IsLocked { get; set; }
-        public bool IsFilter { get; set; }
-        public bool IsNotColumn { get; set; }
-        public bool IsHidden { get; set; }
-        public bool IsMenuDisabled { get; set; }
-        public bool IsGridSummaryRow { get; set; }
-        public string SummaryRenderer { get; set; }
-    }
-    public class GIGridModel
-    {
-        public int RowNum { get; set; }
-        public int UserId { get; set; }
-		public string UserDescription { get; set; }
-		public string UserCode { get; set; }
-		public string Hostname { get; set; }
-		public string LastLogginDate { get; set; }
-        public bool IsMed { get; set; }
-        public bool IsSales { get; set; }
-        public bool IsBlocked { get; set; }
-        public int clrfg { get; set; }
-    }
+    
     [ApiController]
     [Route("[controller]")]
     public class UserListController : ControllerBase
@@ -226,6 +194,7 @@ namespace ServiceHub.Controllers
         {
 
             int totalRows = 0;
+            string message = "Ok";
             bool rezult = true;
             object rows = new { };
 
@@ -234,25 +203,29 @@ namespace ServiceHub.Controllers
                
                 rows = dbGetUserList(ref totalRows);
             }
-            catch (TokenExpiredException)
+            catch (TokenExpiredException ex)
             {
                 rezult = false;
+                message = ex.Message;
                 Console.WriteLine("Token has expired");
             }
-            catch (SignatureVerificationException)
+            catch (SignatureVerificationException ex)
             {
                 rezult = false;
+                message = ex.Message;
                 Console.WriteLine("Token has invalid signature");
             }
             catch (Exception ex)
             {
                 rezult = false;
+                message = ex.Message;
                 Console.WriteLine(ex.Message);
             }
 
             return new JsonResult(new
             {
                 success = rezult,
+                message = message,
                 code = 0,
                 total = totalRows,
                 data = rows

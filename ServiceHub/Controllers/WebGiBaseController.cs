@@ -29,8 +29,43 @@ namespace ServiceHub.Controllers
         public string message { get; set; }
         public int code { get; set; }
         public string token { get; set; }
+        public string userWho { get; set; }
+        public string user { get; set; }
+        public string email { get; set; }
     }
+    public class GIGridColumn
+    {
+        public string Title { get; set; }
 
+        public string DataIndex { get; set; }
+        public string DisplayField { get; set; }
+        public string ValueField { get; set; }
+        public string Width { get; set; }
+        public string Flex { get; set; }
+        public string ValueType { get; set; }
+
+        public string Renderer { get; set; }
+        public bool IsLocked { get; set; }
+        public bool IsFilter { get; set; }
+        public bool IsNotColumn { get; set; }
+        public bool IsHidden { get; set; }
+        public bool IsMenuDisabled { get; set; }
+        public bool IsGridSummaryRow { get; set; }
+        public string SummaryRenderer { get; set; }
+    }
+    public class GIGridModel
+    {
+        public int RowNum { get; set; }
+        public int UserId { get; set; }
+        public string UserDescription { get; set; }
+        public string UserCode { get; set; }
+        public string Hostname { get; set; }
+        public string LastLogginDate { get; set; }
+        public bool IsMed { get; set; }
+        public bool IsSales { get; set; }
+        public bool IsBlocked { get; set; }
+        public int clrfg { get; set; }
+    }
 
     public class WebGiBaseController : ControllerBase
     {

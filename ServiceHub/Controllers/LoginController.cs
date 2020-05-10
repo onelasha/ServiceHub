@@ -118,6 +118,9 @@ namespace ServiceHub.Controllers
                             {
                                 if ((value = recordSet[recordSet.GetOrdinal("IsOk")]) != System.DBNull.Value) resp.success = (bool)value;
                                 if ((value = recordSet[recordSet.GetOrdinal("UniqueID")]) != System.DBNull.Value) req.salt = (string)value;
+                                if ((value = recordSet[recordSet.GetOrdinal("UserWho")]) != System.DBNull.Value) resp.userWho = (string)value;
+                                if ((value = recordSet[recordSet.GetOrdinal("email")]) != System.DBNull.Value) resp.email = (string)value;
+                                resp.user = username;
                             }
                             recordSet.Close();
                             recordSet.Dispose();
