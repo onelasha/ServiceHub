@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Dynamic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using JWT;
 using JWT.Algorithms;
@@ -38,41 +39,23 @@ namespace ServiceHub.Controllers
         {
             string secret = configuration["JWTSecret"];
             string token = Request.Headers["X-WebGI-Authentication"];
+            string version = Request.Headers["X-WebGI-Version"];
 
             var json = new JwtBuilder()
                     .WithAlgorithm(new HMACSHA256Algorithm()) // symmetric
                     .WithSecret(secret)
                     .MustVerifySignature()
                     .Decode(token);
+            JWTDesObect desObject = JsonConvert.DeserializeObject<JWTDesObect>(json);
 
-            dynamic jbody = JsonConvert.DeserializeObject(json);
-            foreach (dynamic root in jbody)
-            {
-                foreach (dynamic cols in root)
-                {
-                    foreach (dynamic item in cols)
-                    {
-                        string name = item.Name;
-                        string val = item.Value.ToString();
-                        switch (name)
-                        {
-                            case "apiKey":
-                                _loginRequest.apiKey = val;
-                                break;
-                            case "username":
-                                _loginRequest.username = val;
-                                break;
-                            case "password":
-                                _loginRequest.password = val;
-                                break;
-                            case "salt":
-                                _loginRequest.salt = val;
-                                break;
-                        }
-                    }
-                }
-            }
+            if (desObject == null || desObject.LoginRequest == null)
+                throw new Exception("Not valid");
 
+            if (desObject.LoginRequest.version != version)
+                throw new Exception("Invalid app version! Log off and log back again");
+
+
+            _loginRequest = desObject.LoginRequest;
         }
         private string DecodeConnectionString()
         {
@@ -108,9 +91,11 @@ namespace ServiceHub.Controllers
                         sqlCommand.Parameters.AddWithValue("@IP_Local", localIP);
                         sqlCommand.Parameters.AddWithValue("@IP_Remote", remoteIP);
                         sqlCommand.Parameters.AddWithValue("@InitGrid", initGrid);
-                        sqlCommand.Parameters.AddWithValue("@Salt", _loginRequest.salt);
 
-                        
+
+                        sqlCommand.Parameters.AddWithValue("@Salt", _loginRequest.salt);
+                        sqlCommand.Parameters.AddWithValue("@Version", _loginRequest.version);
+
                         sqlCommand.Parameters.AddWithValue("@page", page);
                         sqlCommand.Parameters.AddWithValue("@start", start);
                         sqlCommand.Parameters.AddWithValue("@limit", limit);
@@ -194,7 +179,7 @@ namespace ServiceHub.Controllers
         {
 
             int totalRows = 0;
-            string message = "Ok";
+            string exception = "Ok";
             bool rezult = true;
             object rows = new { };
 
@@ -206,26 +191,29 @@ namespace ServiceHub.Controllers
             catch (TokenExpiredException ex)
             {
                 rezult = false;
-                message = ex.Message;
+                exception = ex.Message;
                 Console.WriteLine("Token has expired");
             }
             catch (SignatureVerificationException ex)
             {
                 rezult = false;
-                message = ex.Message;
+                exception = ex.Message;
                 Console.WriteLine("Token has invalid signature");
             }
             catch (Exception ex)
             {
                 rezult = false;
-                message = ex.Message;
+                exception = ex.Message;
                 Console.WriteLine(ex.Message);
+                rows = new {
+                    message = exception
+                };
             }
 
             return new JsonResult(new
             {
                 success = rezult,
-                message = message,
+                message = exception,
                 code = 0,
                 total = totalRows,
                 data = rows

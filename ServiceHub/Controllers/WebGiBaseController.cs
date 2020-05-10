@@ -15,12 +15,18 @@ namespace ServiceHub.Controllers
     {
     }
 
+    public class JWTDesObect
+    { 
+        public int Expiration { get; set; }
+        public LoginRequestJson LoginRequest { get; set; }
+    }
     public class LoginRequestJson
     {
         public string apiKey { get; set; }
         public string username { get; set; }
         public string password { get; set; }
         public string salt { get; set; }
+        public string version { get; set; }
     }
 
     public class LoginResponseJson
@@ -32,6 +38,7 @@ namespace ServiceHub.Controllers
         public string userWho { get; set; }
         public string user { get; set; }
         public string email { get; set; }
+        public string version { get; set; }
     }
     public class GIGridColumn
     {

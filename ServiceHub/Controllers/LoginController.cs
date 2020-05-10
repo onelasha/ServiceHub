@@ -94,6 +94,7 @@ namespace ServiceHub.Controllers
             string remoteIP = this.HttpContext.Connection.RemoteIpAddress.ToString();
             string localIP = this.HttpContext.Connection.LocalIpAddress.ToString();
             string connectionString = $"Data Source={dbServer};Initial Catalog={dbName};Persist Security Info=True;User ID={username};Password={password};TrustServerCertificate=true;";
+            string version = Request.Headers["X-WebGI-Version"];
 
 
             try
@@ -109,6 +110,7 @@ namespace ServiceHub.Controllers
                         //sqlCommand.Parameters.AddWithValue("@APIKey", apiKey);
                         sqlCommand.Parameters.AddWithValue("@IP_Local", localIP);
                         sqlCommand.Parameters.AddWithValue("@IP_Remote", remoteIP);
+                        sqlCommand.Parameters.AddWithValue("@Version", version);
 
                         SqlDataReader recordSet = sqlCommand.ExecuteReader();
                         using (recordSet)
@@ -119,8 +121,10 @@ namespace ServiceHub.Controllers
                                 if ((value = recordSet[recordSet.GetOrdinal("IsOk")]) != System.DBNull.Value) resp.success = (bool)value;
                                 if ((value = recordSet[recordSet.GetOrdinal("UniqueID")]) != System.DBNull.Value) req.salt = (string)value;
                                 if ((value = recordSet[recordSet.GetOrdinal("UserWho")]) != System.DBNull.Value) resp.userWho = (string)value;
-                                if ((value = recordSet[recordSet.GetOrdinal("email")]) != System.DBNull.Value) resp.email = (string)value;
+                                if ((value = recordSet[recordSet.GetOrdinal("Email")]) != System.DBNull.Value) resp.email = (string)value;
+                                if ((value = recordSet[recordSet.GetOrdinal("Version")]) != System.DBNull.Value) resp.version = (string)value;
                                 resp.user = username;
+                                req.version = resp.version;
                             }
                             recordSet.Close();
                             recordSet.Dispose();
@@ -133,11 +137,11 @@ namespace ServiceHub.Controllers
                     var token = new JwtBuilder()
                       .WithAlgorithm(new HMACSHA256Algorithm()) // symmetric
                       .WithSecret(_configuration["JWTSecret"])
-                      //.AddClaim("expiration", DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds()) // 
-                      .AddClaim("LoginRequestJson", req)
+                      .AddClaim("Expiration", DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds()) // 
+                      .AddClaim("LoginRequest", req)
                       .Encode();
 
-                    Console.WriteLine(token);
+                    //Console.WriteLine(token);
                     resp.token = token;
 
                     sqlConnection.Close();
