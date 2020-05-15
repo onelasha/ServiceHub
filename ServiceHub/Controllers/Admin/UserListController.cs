@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using ServiceHub.Model;
 
 namespace ServiceHub.Controllers
 {
@@ -34,36 +35,6 @@ namespace ServiceHub.Controllers
             _loginRequest = new LoginRequestJson();
         }
 
-
-        private void DecodeLoginRequest(IConfiguration configuration)
-        {
-            string secret = configuration["JWTSecret"];
-            string token = Request.Headers["X-WebGI-Authentication"];
-            string version = Request.Headers["X-WebGI-Version"];
-
-            var json = new JwtBuilder()
-                    .WithAlgorithm(new HMACSHA256Algorithm()) // symmetric
-                    .WithSecret(secret)
-                    .MustVerifySignature()
-                    .Decode(token);
-            JWTDesObect desObject = JsonConvert.DeserializeObject<JWTDesObect>(json);
-
-            if (desObject == null || desObject.LoginRequest == null)
-                throw new Exception("Not valid");
-
-            if (desObject.LoginRequest.version != version)
-                throw new Exception("Invalid app version! Log off and log back again");
-
-
-            _loginRequest = desObject.LoginRequest;
-        }
-        private string DecodeConnectionString()
-        {
-            string dbServer = _configuration["DBServer"];
-            string dbName = _configuration["DBName"];
-            DecodeLoginRequest(_configuration);
-            return  $"Data Source={dbServer};Initial Catalog={dbName};Persist Security Info=True;User ID={_loginRequest.username};Password={_loginRequest.password};TrustServerCertificate=true;";
-        }
         private IEnumerable<dynamic> dbGetUserList(ref int totalRecordCount )
         {
             bool initGrid = Request.Query["type"].ToString() == "initGrid" ? true : false;
@@ -79,7 +50,12 @@ namespace ServiceHub.Controllers
             List<dynamic> rows = new List<dynamic>();
             try
             {
-                using (SqlConnection sqlConnection = new SqlConnection(DecodeConnectionString()))
+                using (SqlConnection sqlConnection = new SqlConnection(
+                    GIxUtils.DecodeConnectionString(
+                        _configuration, 
+                        ref _loginRequest, 
+                        Request.Headers["X-WebGI-Authentication"], 
+                        Request.Headers["X-WebGI-Version"])))
                 {
                     sqlConnection.Open();
                     using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
@@ -129,14 +105,15 @@ namespace ServiceHub.Controllers
                                     if ((value = recordSet[recordSet.GetOrdinal("IsFilter")]) != System.DBNull.Value) column.IsFilter = (bool)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("IsNotColumn")]) != System.DBNull.Value) column.IsNotColumn = (bool)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("IsHidden")]) != System.DBNull.Value) column.IsHidden = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsMenuDisabled")]) != System.DBNull.Value) column.IsMenuDisabled = (bool)value; 
+                                    if ((value = recordSet[recordSet.GetOrdinal("IsMenuDisabled")]) != System.DBNull.Value) column.IsMenuDisabled = (bool)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("IsGridSummaryRow")]) != System.DBNull.Value) column.IsGridSummaryRow = (bool)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("IsLocked")]) != System.DBNull.Value) column.IsLocked = (bool)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("SummaryRenderer")]) != System.DBNull.Value) column.SummaryRenderer = (string)value;
-                                    
+
                                     rows.Add(column);
                                 }
-                                else {
+                                else
+                                {
                                     GIGridModel model = new GIGridModel();
                                     if ((value = recordSet[recordSet.GetOrdinal("RowNum")]) != System.DBNull.Value) model.RowNum = (int)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("UserId")]) != System.DBNull.Value) model.UserId = (int)value;
@@ -218,24 +195,7 @@ namespace ServiceHub.Controllers
                 total = totalRows,
                 data = rows
             });
-            //var rng = new Random();
-            //return new JsonResult( new { success = true, status = "success",  Data = Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            //{
-            //    Date = DateTime.Now.AddDays(index),
-            //    TemperatureCC = rng.Next(-20, 55),
-            //    Summary = Summaries[rng.Next(Summaries.Length)]
-            //}) });
-
-            /*
-            var rng = new Random();
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureCC = rng.Next(-20, 55),
-                Summary = Summaries[rng.Next(Summaries.Length)]
-            })
-            .ToArray();
-            */
+            
         }
     }
 }

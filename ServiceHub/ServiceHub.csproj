@@ -6,11 +6,6 @@
 
 
   <ItemGroup>
-    <Folder Include="Model\" />
-  </ItemGroup>
-
-
-  <ItemGroup>
     <PackageReference Include="1" Version="1.0.0" />
     <PackageReference Include="JWT" Version="6.1.4" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.2" />
