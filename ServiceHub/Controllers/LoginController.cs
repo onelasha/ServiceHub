@@ -123,6 +123,7 @@ namespace ServiceHub.Controllers
                                 if ((value = recordSet[recordSet.GetOrdinal("UniqueID")]) != System.DBNull.Value) req.salt = (string)value;
                                 if ((value = recordSet[recordSet.GetOrdinal("UserWho")]) != System.DBNull.Value) resp.userWho = (string)value;
                                 if ((value = recordSet[recordSet.GetOrdinal("Email")]) != System.DBNull.Value) resp.email = (string)value;
+                                if ((value = recordSet[recordSet.GetOrdinal("Avatar")]) != System.DBNull.Value) resp.avatar = (string)value;
                                 if ((value = recordSet[recordSet.GetOrdinal("Version")]) != System.DBNull.Value) resp.version = (string)value;
                                 resp.user = username;
                                 req.version = resp.version;

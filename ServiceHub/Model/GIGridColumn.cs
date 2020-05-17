@@ -1,10 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace ServiceHub.Model
 {
+    public class GIGridInitModel
+    {
+        public string Title { get; set; }
+        public string Toolbar { get; set; }
+        public List<GIGridColumn> ColumnList { get; set; }
+    }
+
     public class GIGridColumn
     {
         public string Title { get; set; }

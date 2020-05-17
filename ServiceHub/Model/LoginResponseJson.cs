@@ -13,6 +13,7 @@ namespace ServiceHub.Model
         public string token { get; set; }
         public string userWho { get; set; }
         public string user { get; set; }
+        public string avatar { get; set; }
         public string email { get; set; }
         public string version { get; set; }
     }

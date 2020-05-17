@@ -35,7 +35,8 @@ namespace ServiceHub.Controllers
             _loginRequest = new LoginRequestJson();
         }
 
-        private IEnumerable<dynamic> dbGetUserList(ref int totalRecordCount )
+        //private IEnumerable<dynamic> dbGetUserList(ref int totalRecordCount )
+        private dynamic dbGetUserList(ref int totalRecordCount )
         {
             bool initGrid = Request.Query["type"].ToString() == "initGrid" ? true : false;
             string remoteIP = this.HttpContext.Connection.RemoteIpAddress.ToString();
@@ -48,6 +49,10 @@ namespace ServiceHub.Controllers
 
 
             List<dynamic> rows = new List<dynamic>();
+            GIGridInitModel giGridInitModel = new GIGridInitModel()
+            {
+                ColumnList = new List<GIGridColumn>()
+            };
             try
             {
                 using (SqlConnection sqlConnection = new SqlConnection(
@@ -109,8 +114,8 @@ namespace ServiceHub.Controllers
                                     if ((value = recordSet[recordSet.GetOrdinal("IsGridSummaryRow")]) != System.DBNull.Value) column.IsGridSummaryRow = (bool)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("IsLocked")]) != System.DBNull.Value) column.IsLocked = (bool)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("SummaryRenderer")]) != System.DBNull.Value) column.SummaryRenderer = (string)value;
-
-                                    rows.Add(column);
+                                    //rows.Add(column);
+                                    giGridInitModel.ColumnList.Add(column);
                                 }
                                 else
                                 {
@@ -129,6 +134,13 @@ namespace ServiceHub.Controllers
                                     rows.Add(model);
                                 }
                             }
+
+                            if (initGrid == true && recordSet.NextResult() && recordSet.Read())
+                            {
+                                if ((value = recordSet[recordSet.GetOrdinal("Title")]) != System.DBNull.Value) giGridInitModel.Title = (string)value;
+                                if ((value = recordSet[recordSet.GetOrdinal("Toolbar")]) != System.DBNull.Value) giGridInitModel.Toolbar = (string)value;
+                            }
+
                             recordSet.Close();
                             recordSet.Dispose();
 
@@ -147,7 +159,9 @@ namespace ServiceHub.Controllers
                 throw new Exception(ex.Message);
             }
 
-            return rows;
+            if (initGrid == false)
+                return rows;
+            return giGridInitModel;
         }
 
      
