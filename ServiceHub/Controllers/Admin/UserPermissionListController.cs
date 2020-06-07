@@ -20,22 +20,22 @@ namespace ServiceHub.Controllers
 {
     
     [ApiController]
-    [Route("[controller]")]
-    public class UserListController : ControllerBase
+    [Route("admin/[controller]")]
+    public class UserPermissionListController : ControllerBase
     {
 
         private LoginRequestJson _loginRequest;
-        private readonly ILogger<UserListController> _logger;
+        private readonly ILogger<UserPermissionListController> _logger;
         private readonly IConfiguration _configuration;
 
-        public UserListController(ILogger<UserListController> logger, IConfiguration configuration)
+        public UserPermissionListController(ILogger<UserPermissionListController> logger, IConfiguration configuration)
         {
             _logger = logger;
             _configuration = configuration;
             _loginRequest = new LoginRequestJson();
         }
 
-        //private IEnumerable<dynamic> dbGetUserList(ref int totalRecordCount )
+        //private IEnumerable<dynamic> dbGetUserPermissionList(ref int totalRecordCount )
         private dynamic dbList(ref int totalRecordCount )
         {
             bool initGrid = Request.Query["type"].ToString() == "initGrid" ? true : false;
@@ -67,7 +67,7 @@ namespace ServiceHub.Controllers
                     {
                         sqlCommand.Connection = sqlConnection;
                         sqlCommand.CommandType = CommandType.StoredProcedure;
-                        sqlCommand.CommandText = "dbo.[usp_WebGI_GetUserList]";
+                        sqlCommand.CommandText = "dbo.[usp_WebGI_GetUserPermissionList]";
                         sqlCommand.Parameters.AddWithValue("@IP_Local", localIP);
                         sqlCommand.Parameters.AddWithValue("@IP_Remote", remoteIP);
                         sqlCommand.Parameters.AddWithValue("@InitGrid", initGrid);
@@ -118,7 +118,8 @@ namespace ServiceHub.Controllers
                                 }
                                 else
                                 {
-                                    UserListModel model = new UserListModel();
+                                    /*
+                                    UserPermissionListModel model = new UserPermissionListModel();
                                     if ((value = recordSet[recordSet.GetOrdinal("RowNum")]) != System.DBNull.Value) model.RowNum = (int)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("UserId")]) != System.DBNull.Value) model.UserId = (int)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("UserDescription")]) != System.DBNull.Value) model.UserDescription = (string)value;
@@ -129,8 +130,8 @@ namespace ServiceHub.Controllers
                                     if ((value = recordSet[recordSet.GetOrdinal("IsBlocked")]) != System.DBNull.Value) model.IsBlocked = (bool)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("IsSales")]) != System.DBNull.Value) model.IsSales = (bool)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("clrfg")]) != System.DBNull.Value) model.clrfg = (int)value;
-
                                     rows.Add(model);
+                                    */
                                 }
                             }
 

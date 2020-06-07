@@ -21,22 +21,22 @@ namespace ServiceHub.Controllers
     
     [ApiController]
     [Route("[controller]")]
-    public class UserListController : ControllerBase
+    public class TaskListController : ControllerBase
     {
 
         private LoginRequestJson _loginRequest;
-        private readonly ILogger<UserListController> _logger;
+        private readonly ILogger<TaskListController> _logger;
         private readonly IConfiguration _configuration;
 
-        public UserListController(ILogger<UserListController> logger, IConfiguration configuration)
+        public TaskListController(ILogger<TaskListController> logger, IConfiguration configuration)
         {
             _logger = logger;
             _configuration = configuration;
             _loginRequest = new LoginRequestJson();
         }
 
-        //private IEnumerable<dynamic> dbGetUserList(ref int totalRecordCount )
-        private dynamic dbList(ref int totalRecordCount )
+        //private IEnumerable<dynamic> dbGetTaskList(ref int totalRecordCount )
+        private dynamic dbGetTaskList(ref int totalRecordCount )
         {
             bool initGrid = Request.Query["type"].ToString() == "initGrid" ? true : false;
             string remoteIP = this.HttpContext.Connection.RemoteIpAddress.ToString();
@@ -67,10 +67,12 @@ namespace ServiceHub.Controllers
                     {
                         sqlCommand.Connection = sqlConnection;
                         sqlCommand.CommandType = CommandType.StoredProcedure;
-                        sqlCommand.CommandText = "dbo.[usp_WebGI_GetUserList]";
+                        sqlCommand.CommandText = "dbo.[usp_WebGI_GetTaskList]";
+                        //sqlCommand.Parameters.AddWithValue("@APIKey", apiKey);
                         sqlCommand.Parameters.AddWithValue("@IP_Local", localIP);
                         sqlCommand.Parameters.AddWithValue("@IP_Remote", remoteIP);
                         sqlCommand.Parameters.AddWithValue("@InitGrid", initGrid);
+
 
                         sqlCommand.Parameters.AddWithValue("@Salt", _loginRequest.salt);
                         sqlCommand.Parameters.AddWithValue("@Version", _loginRequest.version);
@@ -78,11 +80,10 @@ namespace ServiceHub.Controllers
                         sqlCommand.Parameters.AddWithValue("@page", page);
                         sqlCommand.Parameters.AddWithValue("@start", start);
                         sqlCommand.Parameters.AddWithValue("@limit", limit);
-
                         sqlCommand.Parameters.AddWithValue("@sort", Request.Query["sort"].ToString());
 
-                        sqlCommand.Parameters.AddWithValue("@userDescription", Request.Query["userDescription"].ToString());
-                        sqlCommand.Parameters.AddWithValue("@userCode", Request.Query["userCode"].ToString());
+                        sqlCommand.Parameters.AddWithValue("@positionDescription", Request.Query["positionDescription"].ToString());
+                        //sqlCommand.Parameters.AddWithValue("@userCode", Request.Query["userCode"].ToString());
 
 
                         SqlParameter outputValue = sqlCommand.Parameters.Add("@totalCount", SqlDbType.Int);
@@ -113,21 +114,15 @@ namespace ServiceHub.Controllers
                                     if ((value = recordSet[recordSet.GetOrdinal("IsGridSummaryRow")]) != System.DBNull.Value) column.IsGridSummaryRow = (bool)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("IsLocked")]) != System.DBNull.Value) column.IsLocked = (bool)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("SummaryRenderer")]) != System.DBNull.Value) column.SummaryRenderer = (string)value;
-                                    //rows.Add(column);
+
                                     giGridInitModel.ColumnList.Add(column);
                                 }
                                 else
                                 {
-                                    UserListModel model = new UserListModel();
+                                    TaskListModel model = new TaskListModel();
                                     if ((value = recordSet[recordSet.GetOrdinal("RowNum")]) != System.DBNull.Value) model.RowNum = (int)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("UserId")]) != System.DBNull.Value) model.UserId = (int)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("UserDescription")]) != System.DBNull.Value) model.UserDescription = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("UserCode")]) != System.DBNull.Value) model.UserCode = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("Hostname")]) != System.DBNull.Value) model.Hostname = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("LastLogginDate")]) != System.DBNull.Value) model.LastLogginDate = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsMed")]) != System.DBNull.Value) model.IsMed = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsBlocked")]) != System.DBNull.Value) model.IsBlocked = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsSales")]) != System.DBNull.Value) model.IsSales = (bool)value;
+                                    if ((value = recordSet[recordSet.GetOrdinal("PositionId")]) != System.DBNull.Value) model.PositionId = (int)value;
+                                    if ((value = recordSet[recordSet.GetOrdinal("PositionDescription")]) != System.DBNull.Value) model.PositionDescription = (string)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("clrfg")]) != System.DBNull.Value) model.clrfg = (int)value;
 
                                     rows.Add(model);
@@ -176,7 +171,7 @@ namespace ServiceHub.Controllers
             try
             {
                
-                rows = dbList(ref totalRows);
+                rows = dbGetTaskList(ref totalRows);
             }
             catch (TokenExpiredException ex)
             {

@@ -145,6 +145,7 @@ namespace ServiceHub.Controllers
                         {
                             rootId = i.rootId,
                             id = i.id,
+                            Checked = true,
                             pid = i.pid,
                             loaded = i.loaded,
                             expanded = i.expanded,
@@ -159,6 +160,7 @@ namespace ServiceHub.Controllers
                                         select new LeftMenu()
                                         {
                                             id = j.id,
+                                            Checked = true,
                                             pid = j.pid,
                                             rootId = j.rootId,
                                             loaded = j.loaded,
@@ -230,7 +232,11 @@ namespace ServiceHub.Controllers
 
             try
             {
-               
+
+                //dynamic car = new Object();
+                //car.AddProperty("TopSpeed", 180);
+
+
                 rows = dbGetUserLeftMenuList(ref totalRows);
                 rows = MakePlanTree(rows);
             }
@@ -256,7 +262,7 @@ namespace ServiceHub.Controllers
                 };
             }
 
-            return new JsonResult(new { records = 1, root = ".", children = rows });
+            return new JsonResult(new { success= rezult, message = exception, records = 1, root = ".", children = rows });
 
             //return new JsonResult(new
             //{
