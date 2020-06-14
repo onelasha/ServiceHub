@@ -38,6 +38,7 @@ namespace ServiceHub.Controllers
         private IEnumerable<dynamic> dbList(ref int totalRecordCount )
         {
             bool initGrid = Request.Query["type"].ToString() == "initGrid" ? true : false;
+            bool exportGrid = Request.Query["type"].ToString() == "exportGrid" ? true : false;
             bool isUtil = Request.Query["subtype"].ToString() == "isUtil" ? true : false;
             string remoteIP = this.HttpContext.Connection.RemoteIpAddress.ToString();
             string localIP = this.HttpContext.Connection.LocalIpAddress.ToString();
@@ -72,6 +73,7 @@ namespace ServiceHub.Controllers
                         sqlCommand.Parameters.AddWithValue("@IP_Local", localIP);
                         sqlCommand.Parameters.AddWithValue("@IP_Remote", remoteIP);
                         sqlCommand.Parameters.AddWithValue("@InitGrid", initGrid);
+                        sqlCommand.Parameters.AddWithValue("@ExportGrid", exportGrid);
 
                         sqlCommand.Parameters.AddWithValue("@Salt", _loginRequest.salt);
                         sqlCommand.Parameters.AddWithValue("@Version", _loginRequest.version);

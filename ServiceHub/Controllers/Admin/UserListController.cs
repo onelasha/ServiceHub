@@ -39,6 +39,7 @@ namespace ServiceHub.Controllers
         private dynamic dbList(ref int totalRecordCount )
         {
             bool initGrid = Request.Query["type"].ToString() == "initGrid" ? true : false;
+            bool exportGrid = Request.Query["type"].ToString() == "exportGrid" ? true : false;
             string remoteIP = this.HttpContext.Connection.RemoteIpAddress.ToString();
             string localIP = this.HttpContext.Connection.LocalIpAddress.ToString();
 
@@ -71,6 +72,7 @@ namespace ServiceHub.Controllers
                         sqlCommand.Parameters.AddWithValue("@IP_Local", localIP);
                         sqlCommand.Parameters.AddWithValue("@IP_Remote", remoteIP);
                         sqlCommand.Parameters.AddWithValue("@InitGrid", initGrid);
+                        sqlCommand.Parameters.AddWithValue("@ExportGrid", exportGrid);
 
                         sqlCommand.Parameters.AddWithValue("@Salt", _loginRequest.salt);
                         sqlCommand.Parameters.AddWithValue("@Version", _loginRequest.version);
@@ -119,17 +121,29 @@ namespace ServiceHub.Controllers
                                 else
                                 {
                                     UserListModel model = new UserListModel();
-                                    if ((value = recordSet[recordSet.GetOrdinal("RowNum")]) != System.DBNull.Value) model.RowNum = (int)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("UserId")]) != System.DBNull.Value) model.UserId = (int)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("UserDescription")]) != System.DBNull.Value) model.UserDescription = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("UserCode")]) != System.DBNull.Value) model.UserCode = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("Hostname")]) != System.DBNull.Value) model.Hostname = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("LastLogginDate")]) != System.DBNull.Value) model.LastLogginDate = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsMed")]) != System.DBNull.Value) model.IsMed = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsBlocked")]) != System.DBNull.Value) model.IsBlocked = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsSales")]) != System.DBNull.Value) model.IsSales = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("clrfg")]) != System.DBNull.Value) model.clrfg = (int)value;
+                                    var properties = model.GetType().GetProperties();
+                                    foreach (var el in properties)
+                                    {
+                                        string name = el.Name;
+                                        value = recordSet[recordSet.GetOrdinal(name)];
 
+                                        if (value != System.DBNull.Value)
+                                        {
+                                            switch (el.PropertyType.Name)
+                                            {
+                                                case "Int32":
+                                                    el.SetValue(model, (int)value);
+                                                    break;
+                                                case "String":
+                                                    el.SetValue(model, (string)value);
+                                                    break;
+                                                case "Boolean":
+                                                    el.SetValue(model, (bool)value);
+                                                    break;
+                                            }
+
+                                        }
+                                    }
                                     rows.Add(model);
                                 }
                             }
