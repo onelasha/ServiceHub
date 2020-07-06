@@ -10,6 +10,7 @@ namespace ServiceHub.Model
     {
         public string Title { get; set; }
         public string Toolbar { get; set; }
+
         public List<GIGridColumn> ColumnList { get; set; }
     }
 
