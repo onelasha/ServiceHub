@@ -1,18 +1,14 @@
-using NUnit.Framework;
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ServiceHubTests
 {
-    public class LoginTests
+    [TestClass]
+    public class LoginTest
     {
-        [SetUp]
-        public void Setup()
-        {
-        }
-
-        [Test]
+        [TestMethod]
         public void Login_TestUser_Ok()
         {
-            //Assert.Pass();
             Assert.IsTrue(true);
         }
     }
