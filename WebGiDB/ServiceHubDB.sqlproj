@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <Name>WebGiDB</Name>
+    <Name>ServiceHubDB</Name>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
     <ProjectGuid>{b9f70655-6211-4491-b298-39ea18d290e0}</ProjectGuid>
@@ -136,5 +136,6 @@
       <QuotedIdentifier>On</QuotedIdentifier>
     </Build>
     <Build Include="Security\Permissions.sql" />
+    <Build Include="dbo\Stored Procedures\Usp_Config_INS.sql" />
   </ItemGroup>
 </Project>

@@ -6,7 +6,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceHub", "ServiceHub\Se
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceHubTests", "ServiceHubTests\ServiceHubTests.csproj", "{24E69B2F-8EE6-4F6C-8C13-9A37C5E75015}"
 EndProject
-Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "WebGiDB", "WebGiDB\WebGiDB.sqlproj", "{B9F70655-6211-4491-B298-39EA18D290E0}"
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "ServiceHubDB", "WebGiDB\ServiceHubDB.sqlproj", "{B9F70655-6211-4491-B298-39EA18D290E0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
