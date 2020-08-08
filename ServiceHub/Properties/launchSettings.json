@@ -3,7 +3,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iis": {
-      "applicationUrl": "http://localhost/ServiceHubDebug",
+      "applicationUrl": "http://localhost/ServiceHub",
       "sslPort": 0
     },
     "iisExpress": {
@@ -26,8 +26,7 @@
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "applicationUrl": "http://localhost:8000"
+      }
     },
     "Production": {
       "commandName": "IIS",
