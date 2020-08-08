@@ -3,7 +3,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iis": {
-      "applicationUrl": "http://localhost/ServiceHub",
+      "applicationUrl": "http://localhost/ServiceHubDebug",
       "sslPort": 0
     },
     "iisExpress": {
