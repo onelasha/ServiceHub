@@ -28,6 +28,15 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "applicationUrl": "http://localhost:8000"
+    },
+    "Production": {
+      "commandName": "IIS",
+      "workingDirectory": "\\\\Mac\\Home\\Documents\\Projects Local\\ServiceHub",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Production"
+      },
+      "applicationUrl": "http://localhost:8000"
     }
   }
 }
