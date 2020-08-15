@@ -22,6 +22,7 @@ namespace ServiceHub.Controllers
     [ApiController]
     public class LoginController : ControllerBase
     {
+        private LoginRequestJson _loginRequest;
         private readonly ILogger<LoginController> _logger;
         private readonly IConfiguration _configuration;
 
@@ -29,6 +30,7 @@ namespace ServiceHub.Controllers
         {
             _logger = logger;
             _configuration = configuration;
+            _loginRequest = new LoginRequestJson();
         }
 
         private bool dbCheckAPIKey(ref LoginRequestJson req, ref LoginResponseJson resp)
@@ -37,16 +39,14 @@ namespace ServiceHub.Controllers
 
             try
             {
-                //string username = "GI_ADM";
-                //string password = "asdASD123";
-                string dbServer = _configuration["DBServer"];
-                string dbName = _configuration["DBName"];
                 string remoteIP = this.HttpContext.Connection.RemoteIpAddress.ToString();
                 string localIP = this.HttpContext.Connection.LocalIpAddress.ToString();
-                string connectionString = $"Data Source={dbServer};Initial Catalog={dbName};Persist Security Info=True;User ID={req.username};Password={req.password};TrustServerCertificate=true;";
-
-
-                using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+                using (SqlConnection sqlConnection = new SqlConnection(
+                                    GIxUtils.DecodeConnectionString(
+                                        _configuration,
+                                        ref _loginRequest,
+                                        Request.Headers["X-WebGI-Authentication"],
+                                        Request.Headers["X-WebGI-Version"])))
                 {
                     sqlConnection.Open();
                     using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
@@ -57,6 +57,9 @@ namespace ServiceHub.Controllers
                         sqlCommand.Parameters.AddWithValue("@APIKey", req.apiKey);
                         sqlCommand.Parameters.AddWithValue("@IP_Local", localIP);
                         sqlCommand.Parameters.AddWithValue("@IP_Remote", remoteIP);
+                        sqlCommand.Parameters.AddWithValue("@Username", req.username);
+                        //sqlCommand.Parameters.AddWithValue("@Salt", _loginRequest.salt);
+                        //sqlCommand.Parameters.AddWithValue("@Version", _loginRequest.version);
 
                         SqlDataReader recordSet = sqlCommand.ExecuteReader();
                         using (recordSet)
@@ -87,20 +90,18 @@ namespace ServiceHub.Controllers
         }
         private bool dbIssueSessionToken(ref LoginRequestJson req, ref LoginResponseJson resp) 
         {
-            string dbServer = _configuration["DBServer"];
-            string dbName = _configuration["DBName"];
-            string username = req.username;
-            string password = req.password;
-            string uniqueID = string.Empty;
-            string remoteIP = this.HttpContext.Connection.RemoteIpAddress.ToString();
-            string localIP = this.HttpContext.Connection.LocalIpAddress.ToString();
-            string connectionString = $"Data Source={dbServer};Initial Catalog={dbName};Persist Security Info=True;User ID={username};Password={password};TrustServerCertificate=true;";
-            string version = Request.Headers["X-WebGI-Version"];
-
-
             try
             {
-                using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+                string remoteIP = this.HttpContext.Connection.RemoteIpAddress.ToString();
+                string localIP = this.HttpContext.Connection.LocalIpAddress.ToString();
+                //string passwordEncr = GIxUtils.EncryptString(req.password);
+
+                using (SqlConnection sqlConnection = new SqlConnection(
+                                                    GIxUtils.DecodeConnectionString(
+                                                        _configuration,
+                                                        ref _loginRequest,
+                                                        Request.Headers["X-WebGI-Authentication"],
+                                                        Request.Headers["X-WebGI-Version"])))
                 {
                     sqlConnection.Open();
                     using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
@@ -108,10 +109,11 @@ namespace ServiceHub.Controllers
                         sqlCommand.Connection = sqlConnection;
                         sqlCommand.CommandType = CommandType.StoredProcedure;
                         sqlCommand.CommandText = "dbo.[usp_WebGI_IssueSessionToken]";
-                        //sqlCommand.Parameters.AddWithValue("@APIKey", apiKey);
+                        sqlCommand.Parameters.AddWithValue("@APIKey", req.apiKey);
                         sqlCommand.Parameters.AddWithValue("@IP_Local", localIP);
                         sqlCommand.Parameters.AddWithValue("@IP_Remote", remoteIP);
-                        sqlCommand.Parameters.AddWithValue("@Version", version);
+                        sqlCommand.Parameters.AddWithValue("@Username", req.username);
+                        sqlCommand.Parameters.AddWithValue("@Password", req.password);
 
                         SqlDataReader recordSet = sqlCommand.ExecuteReader();
                         using (recordSet)
@@ -125,7 +127,7 @@ namespace ServiceHub.Controllers
                                 if ((value = recordSet[recordSet.GetOrdinal("Email")]) != System.DBNull.Value) resp.email = (string)value;
                                 if ((value = recordSet[recordSet.GetOrdinal("Avatar")]) != System.DBNull.Value) resp.avatar = (string)value;
                                 if ((value = recordSet[recordSet.GetOrdinal("Version")]) != System.DBNull.Value) resp.version = (string)value;
-                                resp.user = username;
+                                resp.user = _loginRequest.username;
                                 req.version = resp.version;
                             }
                             recordSet.Close();
@@ -159,20 +161,19 @@ namespace ServiceHub.Controllers
             }
 
             if (!resp.success)
-                throw new Exception("Authentication issue detected - Invalid SessionToken");
+                throw new Exception("Invalid username or password");
             return resp.success;
         }
 
 
-        // GET: Login
         [HttpPost]
         public async Task<JsonResult> Login()
         {
             LoginRequestJson reqObj = new LoginRequestJson();
             LoginResponseJson respObj = new LoginResponseJson()
             {
-                success = true,
-                message = "Ok",
+                success = false,
+                message = "",
                 code = 0,
                 token = string.Empty
             };
@@ -188,7 +189,7 @@ namespace ServiceHub.Controllers
                     object respojseObj_MissingBearer = new
                     {
                         success = false,
-                        message = "Unauthorized",
+                        message = "Authorization header is not provided",
                         code = -401,
                         token = ""
                     };
@@ -201,7 +202,7 @@ namespace ServiceHub.Controllers
                     object respojseObj_MissingBearer = new
                     {
                         success = false,
-                        message = "Unauthorized - Missing Bearer Token",
+                        message = "Missing bearer token",
                         code = -401,
                         token = ""
                     };
@@ -213,6 +214,19 @@ namespace ServiceHub.Controllers
                     string body = string.Empty;
                     body = await reader.ReadToEndAsync();
                     dynamic jbody = JsonConvert.DeserializeObject(body);
+
+                    if (jbody == null)
+                    {
+                        object respojseObj_MissingBearer = new
+                        {
+                            success = false,
+                            message = "Missing request body",
+                            code = -401,
+                            token = ""
+                        };
+                        return new JsonResult(respojseObj_MissingBearer);
+                    }
+
                     foreach (dynamic item in jbody)
                     {
                         //int rowCount = 0;
@@ -239,7 +253,7 @@ namespace ServiceHub.Controllers
                     object respojseObj_MissingBearer = new
                     {
                         success = false,
-                        message = "Unauthorized - No credentials provided",
+                        message = "No credentials provided",
                         code = -401,
                         token = ""
                     };
@@ -257,7 +271,7 @@ namespace ServiceHub.Controllers
                 object respojseObj_CheckBearer = new
                 {
                     success = false,
-                    message = $"Unauthorized - {ex.Message}",
+                    message = $"Unauthenticated - {ex.Message}",
                     code = -401,
                     token = ""
                 };
@@ -267,30 +281,5 @@ namespace ServiceHub.Controllers
 
             return new JsonResult(respObj);
         }
-
-        //// GET: Login/5
-        //[HttpGet("{id}", Name = "Get")]
-        //public string Get(int id)
-        //{
-        //    return "value";
-        //}
-
-        //// POST: Login
-        //[HttpPost]
-        //public void Post([FromBody] string value)
-        //{
-        //}
-
-        //// PUT: Login/5
-        //[HttpPut("{id}")]
-        //public void Put(int id, [FromBody] string value)
-        //{
-        //}
-            
-        //// DELETE: ApiWithActions/5
-        //[HttpDelete("{id}")]
-        //public void Delete(int id)
-        //{
-        //}
     }
 }

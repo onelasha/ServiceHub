@@ -5,6 +5,10 @@
     <UserSecretsId>5ea92c9b-ccc4-4b86-88d9-54622df8280d</UserSecretsId>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+
 
   <ItemGroup>
     <PackageReference Include="1" Version="1.0.0" />
@@ -18,4 +22,6 @@
   <ItemGroup>
     <Folder Include="Controllers\Claims\" />
   </ItemGroup>
+
+
 </Project>

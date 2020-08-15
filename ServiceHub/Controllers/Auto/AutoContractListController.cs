@@ -64,10 +64,8 @@ namespace ServiceHub.Controllers
                         sqlCommand.CommandText = "dbo.[usp_WebGI_GetContractList]";
                         sqlCommand.Parameters.AddWithValue("@IP_Local", localIP);
                         sqlCommand.Parameters.AddWithValue("@IP_Remote", remoteIP);
-
                         sqlCommand.Parameters.AddWithValue("@Salt", _loginRequest.salt);
                         sqlCommand.Parameters.AddWithValue("@Version", _loginRequest.version);
-
                         sqlCommand.Parameters.AddWithValue("@recState", 0);
                         sqlCommand.Parameters.AddWithValue("@saxeobaId", 3);
 
