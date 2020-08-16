@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using JWT;
 using JWT.Algorithms;
 using JWT.Builder;
+using JWT.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -167,11 +168,21 @@ namespace ServiceHub.Controllers
                 }
             }
 
-            catch (Exception ex)
+            catch (TokenExpiredException ex)
             {
+                GIxUtils.Log(ex);
                 throw new Exception(ex.Message);
             }
-
+            catch (SignatureVerificationException ex)
+            {
+                GIxUtils.Log(ex);
+                throw new Exception(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                GIxUtils.Log(ex);
+                throw new Exception(ex.Message);
+            }
             if (initGrid == false)
                 return rows;
             return giGridInitModel;
@@ -192,18 +203,7 @@ namespace ServiceHub.Controllers
                
                 rows = dbList(ref totalRows);
             }
-            catch (TokenExpiredException ex)
-            {
-                rezult = false;
-                exception = ex.Message;
-                Console.WriteLine("Token has expired");
-            }
-            catch (SignatureVerificationException ex)
-            {
-                rezult = false;
-                exception = ex.Message;
-                Console.WriteLine("Token has invalid signature");
-            }
+            
             catch (Exception ex)
             {
                 rezult = false;
@@ -212,6 +212,7 @@ namespace ServiceHub.Controllers
                 rows = new {
                     message = exception
                 };
+                GIxUtils.Log(ex);
             }
 
             return new JsonResult(new

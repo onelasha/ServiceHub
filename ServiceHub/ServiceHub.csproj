@@ -9,18 +9,20 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
 
-
   <ItemGroup>
-    <PackageReference Include="1" Version="1.0.0" />
-    <PackageReference Include="JWT" Version="6.1.4" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.2" />
-    <PackageReference Include="RestSharp" Version="106.11.4" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
+    <Compile Remove="Controllers\Claims\**" />
+    <Content Remove="Controllers\Claims\**" />
+    <EmbeddedResource Remove="Controllers\Claims\**" />
+    <None Remove="Controllers\Claims\**" />
   </ItemGroup>
 
 
   <ItemGroup>
-    <Folder Include="Controllers\Claims\" />
+    <PackageReference Include="1" Version="1.0.0" />
+    <PackageReference Include="JWT" Version="7.2.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.2" />
+    <PackageReference Include="RestSharp" Version="106.11.4" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
   </ItemGroup>
 
 

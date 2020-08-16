@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using JWT;
 using JWT.Algorithms;
 using JWT.Builder;
+using JWT.Exceptions;
+using JWT.Serializers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -17,6 +21,10 @@ namespace ServiceHub.Controllers
 {
     public static class GIxUtils 
     {
+        static public void Log(Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
         static public string EncryptString(string string2Encrypt)
         {
             string enryptedString = string.Empty;
@@ -80,11 +88,9 @@ namespace ServiceHub.Controllers
             }
             return decryptedString;
         }
-        static private void DecodeLoginRequest(IConfiguration configuration, ref LoginRequestJson loginRequest, string token, string version)
+        static private void DecodeLoginRequest(IConfiguration configuration, ref LoginRequestJson loginRequest, string token, string version, string connectionString)
         {
-            string secret = configuration["JWTSecret"];
-            //string token = Request.Headers["X-WebGI-Authentication"];
-            //string version = Request.Headers["X-WebGI-Version"];
+            string secret = DecyptString(configuration["JWTSecretEncypted"]);
 
             var json = new JwtBuilder()
                     .WithAlgorithm(new HMACSHA256Algorithm()) // symmetric
@@ -99,8 +105,12 @@ namespace ServiceHub.Controllers
             if (desObject.LoginRequest.version != version)
                 throw new Exception("Invalid app version! Log off and log back again");
 
-
             loginRequest = desObject.LoginRequest;
+            if (string.IsNullOrWhiteSpace(connectionString))
+                return;
+
+
+
         }
         static public string DecodeConnectionString(IConfiguration configuration, ref LoginRequestJson loginRequest, string token, string version)
         {
@@ -108,12 +118,12 @@ namespace ServiceHub.Controllers
             //string dbName = configuration["DBName"];
             bool isEncrypted = Convert.ToBoolean(configuration["ConnectionStrings:Encrypted"]);
             string connectionString = configuration["ConnectionStrings:ConnStr"];
-            
-            if (!string.IsNullOrWhiteSpace(token) && token != "null" )
-                DecodeLoginRequest(configuration, ref loginRequest, token, version);
 
             if (isEncrypted == true)
                 connectionString = DecyptString(connectionString);
+            if (!string.IsNullOrWhiteSpace(token) && token != "null" )
+                DecodeLoginRequest(configuration, ref loginRequest, token, version, connectionString);
+
 
             return connectionString;
             //return $"Data Source={dbServer};Initial Catalog={dbName};Persist Security Info=True;User ID={loginRequest.username};Password={loginRequest.password};TrustServerCertificate=true;";

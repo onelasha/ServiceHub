@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using JWT;
 using JWT.Algorithms;
 using JWT.Builder;
+using JWT.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -151,6 +152,7 @@ namespace ServiceHub.Controllers
 
             catch (Exception ex)
             {
+                GIxUtils.Log(ex);
                 throw new Exception(ex.Message);
             }
 
@@ -178,13 +180,13 @@ namespace ServiceHub.Controllers
             {
                 rezult = false;
                 exception = ex.Message;
-                Console.WriteLine("Token has expired");
+                GIxUtils.Log(ex);
             }
             catch (SignatureVerificationException ex)
             {
                 rezult = false;
                 exception = ex.Message;
-                Console.WriteLine("Token has invalid signature");
+                GIxUtils.Log(ex);
             }
             catch (Exception ex)
             {
@@ -194,6 +196,7 @@ namespace ServiceHub.Controllers
                 rows = new {
                     message = exception
                 };
+                GIxUtils.Log(ex);
             }
 
             return new JsonResult(new

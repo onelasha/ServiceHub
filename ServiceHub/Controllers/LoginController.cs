@@ -26,7 +26,7 @@ namespace ServiceHub.Controllers
         private readonly ILogger<LoginController> _logger;
         private readonly IConfiguration _configuration;
 
-        public LoginController(ILogger<LoginController> logger, IConfiguration configuration)
+        public LoginController(ILogger<LoginController> logger, IConfiguration configuration/*, IHttpContextAccessor accessor*/)
         {
             _logger = logger;
             _configuration = configuration;
@@ -41,6 +41,9 @@ namespace ServiceHub.Controllers
             {
                 string remoteIP = this.HttpContext.Connection.RemoteIpAddress.ToString();
                 string localIP = this.HttpContext.Connection.LocalIpAddress.ToString();
+                //string localHost = HttpContext.Features.Get()?.RemoteIpAddress?.ToString();
+                //var a = HttpContext.Features.Get();
+
                 using (SqlConnection sqlConnection = new SqlConnection(
                                     GIxUtils.DecodeConnectionString(
                                         _configuration,
@@ -83,7 +86,7 @@ namespace ServiceHub.Controllers
             {
                 throw new Exception(ex.Message);
             }
-            
+
             if (!rezult)
                 throw new Exception("Unauthorized access detected, Invalid access token.");
             return rezult;
@@ -140,8 +143,8 @@ namespace ServiceHub.Controllers
                     
                     var token = new JwtBuilder()
                       .WithAlgorithm(new HMACSHA256Algorithm()) // symmetric
-                      .WithSecret(_configuration["JWTSecret"])
-                      .AddClaim("Expiration", DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds()) // 
+                      .WithSecret(GIxUtils.DecyptString( _configuration["JWTSecretEncypted"]))
+                      .AddClaim("exp", DateTimeOffset.UtcNow.AddDays(1).ToUnixTimeSeconds()) // 
                       .AddClaim("LoginRequest", req)
                       .Encode();
 
@@ -267,6 +270,7 @@ namespace ServiceHub.Controllers
             }
             catch (Exception ex)
             {
+                GIxUtils.Log(ex);
                 Response.StatusCode = StatusCodes.Status401Unauthorized;
                 object respojseObj_CheckBearer = new
                 {

@@ -62,6 +62,8 @@ namespace ServiceHub.Controllers
                 string encr = GIxUtils.EncryptString("Data Source=172.22.22.12;Initial Catalog=GI_TEST;User ID=WebGi;Password=P@$$w0rd4W3bG1;Persist Security Info=True;TrustServerCertificate=true;");
                 string decr = GIxUtils.DecyptString(encr);
 
+                encr = GIxUtils.EncryptString("Barjakuzu010203");
+
                 //X509Certificate2 cert = new X509Certificate2(@"C:\webgi\webgi-app.pfx");
 
                 /*

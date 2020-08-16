@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -26,6 +28,18 @@ namespace ServiceHub
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //services.Configure<ForwardedHeadersOptions>(options =>
+            //{
+            //    options.ForwardedHeaders =
+            //        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            //});
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders =
+                    ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            });
+
+            //services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddCors(options =>
             {
                 options.AddPolicy(name: MyAllowSpecificOrigins,
@@ -59,8 +73,11 @@ namespace ServiceHub
                 app.UseDeveloperExceptionPage();
             }
 
-            
-
+            //var forwardingOptions = new ForwardedHeadersOptions() { 
+            //    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.All 
+            //}; 
+            //app.UseForwardedHeaders(forwardingOptions);
+            app.UseForwardedHeaders();
             app.UseHttpsRedirection();
             
             app.UseRouting();
