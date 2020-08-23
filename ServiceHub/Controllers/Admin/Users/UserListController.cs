@@ -48,6 +48,10 @@ namespace ServiceHub.Controllers
             string start = Request.Query["start"].ToString();
             string limit = Request.Query["limit"].ToString();
 
+            string withDeleteStr = Request.Query["withDelete"].ToString();
+            string userIdStr = Request.Query["userId"].ToString();
+            bool withDelete =  !string.IsNullOrWhiteSpace(withDeleteStr) ? Convert.ToBoolean(withDeleteStr) : false;
+            int userId = !string.IsNullOrWhiteSpace(userIdStr) ? Convert.ToInt32(userIdStr) : 0 ;
 
 
             List<dynamic> rows = new List<dynamic>();
@@ -86,6 +90,8 @@ namespace ServiceHub.Controllers
 
                         sqlCommand.Parameters.AddWithValue("@userDescription", Request.Query["userDescription"].ToString());
                         sqlCommand.Parameters.AddWithValue("@userCode", Request.Query["userCode"].ToString());
+                        sqlCommand.Parameters.AddWithValue("@withDelete", withDelete);
+                        sqlCommand.Parameters.AddWithValue("@userId", userId);
 
 
                         SqlParameter outputValue = sqlCommand.Parameters.Add("@totalCount", SqlDbType.Int);

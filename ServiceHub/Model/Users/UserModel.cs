@@ -33,5 +33,7 @@ namespace ServiceHub.Model
         public object IsMed { get; set; }
         public object IsSales { get; set; }
         public object IsBlocked { get; set; }
+        public string Permissions { get; set; }
+        public string Email { get; set; }
     }
 }

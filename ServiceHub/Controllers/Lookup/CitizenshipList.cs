@@ -36,7 +36,7 @@ namespace ServiceHub.Controllers
         }
 
 
-        private IEnumerable<dynamic> dbList(ref int totalRecordCount )
+        private dynamic dbList(ref int totalRecordCount )
         {
             bool initGrid = Request.Query["type"].ToString() == "initGrid" ? true : false;
             bool exportGrid = Request.Query["type"].ToString() == "exportGrid" ? true : false;
@@ -69,7 +69,7 @@ namespace ServiceHub.Controllers
                     {
                         sqlCommand.Connection = sqlConnection;
                         sqlCommand.CommandType = CommandType.StoredProcedure;
-                        sqlCommand.CommandText = "dbo.[usp_WebGI_lookup_GetSCitizenshipList]";
+                        sqlCommand.CommandText = "dbo.[usp_WebGI_lookup_GetCitizenshipList]";
                         //sqlCommand.Parameters.AddWithValue("@APIKey", apiKey);
                         sqlCommand.Parameters.AddWithValue("@IP_Local", localIP);
                         sqlCommand.Parameters.AddWithValue("@IP_Remote", remoteIP);
@@ -84,7 +84,7 @@ namespace ServiceHub.Controllers
                         sqlCommand.Parameters.AddWithValue("@start", start);
                         sqlCommand.Parameters.AddWithValue("@limit", limit);
 
-                        sqlCommand.Parameters.AddWithValue("@utilityFilter", Request.Query["query"].ToString()); // when typing in dropdown
+                        sqlCommand.Parameters.AddWithValue("@utilityFilter", Request.Query["utilityFilter"].ToString()); // when typing in dropdown
                         sqlCommand.Parameters.AddWithValue("@sort", Request.Query["sort"].ToString());
 
                         //sqlCommand.Parameters.AddWithValue("@userDescription", Request.Query["userDescription"].ToString());
@@ -120,12 +120,40 @@ namespace ServiceHub.Controllers
 
                                     giGridInitModel.ColumnList.Add(column);
                                 }
-                                else {
+                                else
+                                {
                                     GILookupModel model = new GILookupModel();
-                                    if ((value = recordSet[recordSet.GetOrdinal("Id")]) != System.DBNull.Value) model.Id = (int)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("Description")]) != System.DBNull.Value) model.Description = (string)value;
+                                    var properties = model.GetType().GetProperties();
+                                    foreach (var el in properties)
+                                    {
+                                        string name = el.Name;
+                                        value = recordSet[recordSet.GetOrdinal(name)];
+
+                                        if (value != System.DBNull.Value)
+                                        {
+                                            switch (el.PropertyType.Name)
+                                            {
+                                                case "Int32":
+                                                    el.SetValue(model, (int)value);
+                                                    break;
+                                                case "String":
+                                                    el.SetValue(model, (string)value);
+                                                    break;
+                                                case "Boolean":
+                                                    el.SetValue(model, (bool)value);
+                                                    break;
+                                            }
+
+                                        }
+                                    }
                                     rows.Add(model);
                                 }
+                                //else {
+                                //    GILookupModel model = new GILookupModel();
+                                //    if ((value = recordSet[recordSet.GetOrdinal("Id")]) != System.DBNull.Value) model.Id = (int)value;
+                                //    if ((value = recordSet[recordSet.GetOrdinal("Description")]) != System.DBNull.Value) model.Description = (string)value;
+                                //    rows.Add(model);
+                                //}
                             }
                             if (initGrid == true && recordSet.NextResult() && recordSet.Read())
                             {
@@ -152,7 +180,9 @@ namespace ServiceHub.Controllers
                 throw new Exception(ex.Message);
             }
 
-            return rows;
+            if (initGrid == false)
+                return rows;
+            return giGridInitModel;
         }
 
      

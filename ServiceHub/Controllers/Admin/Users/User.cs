@@ -112,6 +112,8 @@ namespace ServiceHub.Controllers
                                 if ((value = recordSet[recordSet.GetOrdinal("IsMed")]) != System.DBNull.Value) model.IsMed = (bool)value;
                                 if ((value = recordSet[recordSet.GetOrdinal("IsSales")]) != System.DBNull.Value) model.IsSales = (bool)value;
                                 if ((value = recordSet[recordSet.GetOrdinal("BirthPlace")]) != System.DBNull.Value) model.BirthPlace = (string)value;
+                                if ((value = recordSet[recordSet.GetOrdinal("Email")]) != System.DBNull.Value) model.Email = (string)value;
+
 
                             }
                             recordSet.Close();
@@ -190,6 +192,8 @@ namespace ServiceHub.Controllers
                         sqlCommand.Parameters.AddWithValue("@IsBlocked", user.IsBlocked == null ? false : Convert.ToBoolean(user.IsBlocked.ToString()));
                         sqlCommand.Parameters.AddWithValue("@IsSales", user.IsSales == null ? false : Convert.ToBoolean(user.IsSales.ToString()));
                         sqlCommand.Parameters.AddWithValue("@Code", user.Code);
+                        sqlCommand.Parameters.AddWithValue("@Permissions", user.Permissions);
+                        sqlCommand.Parameters.AddWithValue("@Email", user.Email);
 
                         SqlParameter outputValue = sqlCommand.Parameters.Add("@totalCount", SqlDbType.Int);
                         outputValue.Direction = ParameterDirection.Output;
@@ -225,7 +229,7 @@ namespace ServiceHub.Controllers
                                 if ((value = recordSet[recordSet.GetOrdinal("IsMed")]) != System.DBNull.Value) model.IsMed = (bool)value;
                                 if ((value = recordSet[recordSet.GetOrdinal("IsSales")]) != System.DBNull.Value) model.IsSales = (bool)value;
                                 if ((value = recordSet[recordSet.GetOrdinal("BirthPlace")]) != System.DBNull.Value) model.BirthPlace = (string)value;
-
+                                if ((value = recordSet[recordSet.GetOrdinal("Email")]) != System.DBNull.Value) model.Email = (string)value;
                             }
                             recordSet.Close();
                             recordSet.Dispose();
