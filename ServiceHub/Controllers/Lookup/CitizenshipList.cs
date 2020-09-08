@@ -20,7 +20,7 @@ using ServiceHub.Model;
 namespace ServiceHub.Controllers
 {
     [ApiController]
-    [Route("lookup/[controller]")]
+    [Route("[controller]")]
     public class CitizenshipListController : ControllerBase
     {
 

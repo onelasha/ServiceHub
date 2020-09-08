@@ -21,7 +21,7 @@ namespace ServiceHub.Controllers
 {
     
     [ApiController]
-    [Route("admin/[controller]")]
+    [Route("[controller]")]
     public class UserPermissionListController : ControllerBase
     {
 

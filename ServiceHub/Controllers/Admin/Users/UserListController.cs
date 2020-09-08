@@ -88,6 +88,7 @@ namespace ServiceHub.Controllers
 
                         sqlCommand.Parameters.AddWithValue("@sort", Request.Query["sort"].ToString());
 
+                        sqlCommand.Parameters.AddWithValue("@userName", Request.Query["userName"].ToString());
                         sqlCommand.Parameters.AddWithValue("@userDescription", Request.Query["userDescription"].ToString());
                         sqlCommand.Parameters.AddWithValue("@userCode", Request.Query["userCode"].ToString());
                         sqlCommand.Parameters.AddWithValue("@withDelete", withDelete);
@@ -193,8 +194,61 @@ namespace ServiceHub.Controllers
                 return rows;
             return giGridInitModel;
         }
+        private bool dbDeleteUser(ref int totalRecordCount)
+        {
+            string remoteIP = this.HttpContext.Connection.RemoteIpAddress.ToString();
+            string localIP = this.HttpContext.Connection.LocalIpAddress.ToString();
+            string userId = Request.Form["userId"];
 
-     
+
+            List<dynamic> rows = new List<dynamic>();
+            GIGridInitModel giGridInitModel = new GIGridInitModel()
+            {
+                ColumnList = new List<GIGridColumn>()
+            };
+            try
+            {
+                using (SqlConnection sqlConnection = new SqlConnection(
+                    GIxUtils.DecodeConnectionString(
+                        _configuration,
+                        ref _loginRequest,
+                        Request.Headers["X-WebGI-Authentication"],
+                        Request.Headers["X-WebGI-Version"])))
+                {
+                    sqlConnection.Open();
+                    using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                    {
+                        sqlCommand.Connection = sqlConnection;
+                        sqlCommand.CommandType = CommandType.StoredProcedure;
+                        sqlCommand.CommandText = "dbo.[usp_WebGI_DeleteUser]";
+                        //sqlCommand.Parameters.AddWithValue("@APIKey", apiKey);
+                        sqlCommand.Parameters.AddWithValue("@IP_Local", localIP);
+                        sqlCommand.Parameters.AddWithValue("@IP_Remote", remoteIP);
+                        sqlCommand.Parameters.AddWithValue("@Salt", _loginRequest.salt);
+                        sqlCommand.Parameters.AddWithValue("@Version", _loginRequest.version);
+
+                        sqlCommand.Parameters.AddWithValue("@UserId", userId);
+
+                        SqlParameter outputValue = sqlCommand.Parameters.Add("@totalCount", SqlDbType.Int);
+                        outputValue.Direction = ParameterDirection.Output;
+
+                        sqlCommand.ExecuteNonQuery();
+                    }
+
+                    sqlConnection.Close();
+                    sqlConnection.Dispose();
+                }
+            }
+
+            catch (Exception ex)
+            {
+                GIxUtils.Log(ex);
+                throw new Exception(ex.Message);
+            }
+
+            return true;
+        }
+
         [HttpGet]
         public JsonResult Get()
         {
@@ -228,8 +282,41 @@ namespace ServiceHub.Controllers
                 code = 0,
                 total = totalRows,
                 data = rows
+            }); //, new JsonSerializerOptions { PropertyNamingPolicy = null } 
+
+        }
+        [HttpDelete]
+        public JsonResult Delete()
+        {
+            int totalRows = 0;
+            string exception = "Ok";
+            bool rezult = true;
+            object rows = new { };
+
+            try
+            {
+                rows = dbDeleteUser(ref totalRows);
+            }
+            catch (Exception ex)
+            {
+                rezult = false;
+                exception = ex.Message;
+                Console.WriteLine(ex.Message);
+                rows = new
+                {
+                    message = exception
+                };
+                GIxUtils.Log(ex);
+            }
+
+            return new JsonResult(new
+            {
+                success = rezult,
+                message = exception,
+                code = 0,
+                total = totalRows,
+                data = rows
             });
-            
         }
     }
 }

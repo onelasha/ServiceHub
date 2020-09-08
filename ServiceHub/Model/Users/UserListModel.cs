@@ -9,6 +9,7 @@ namespace ServiceHub.Model
     {
         public int RowNum { get; set; }
         public int UserId { get; set; }
+        public string UserName { get; set; }
         public string UserDescription { get; set; }
         public string UserCode { get; set; }
         public string Hostname { get; set; }

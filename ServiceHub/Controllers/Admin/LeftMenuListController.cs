@@ -1,5 +1,4 @@
 ﻿using System;
-using System;
 using System.Collections.Generic;
 using System.Composition.Convention;
 using System.Data;
@@ -22,7 +21,7 @@ namespace ServiceHub.Controllers
 {
     
     [ApiController]
-    [Route("admin/[controller]")]
+    [Route("[controller]")]
     public class LeftMenuListController : ControllerBase
     {
 
@@ -143,7 +142,7 @@ namespace ServiceHub.Controllers
             IEnumerable<dynamic> rows = (IEnumerable<dynamic>)list;
 
             var _list = from i in rows
-                        where i.isMenuGroup == true 
+                        where i.isMenuGroup == true
                         select new LeftMenu()
                         {
                             rootId = i.rootId,
