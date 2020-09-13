@@ -35,5 +35,10 @@ namespace ServiceHub.Model
         public object IsBlocked { get; set; }
         public string Permissions { get; set; }
         public string Email { get; set; }
+        public bool ResetOnly { get; set; }
+        public bool Activate { get; set; }
+        public string ActivationToken { get; set; }
+        public string NewPassword { get; set; }
+        public string RePassword { get; set; }
     }
 }

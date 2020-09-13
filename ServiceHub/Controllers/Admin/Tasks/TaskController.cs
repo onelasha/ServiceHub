@@ -218,7 +218,7 @@ namespace ServiceHub.Controllers.Admin.Tasks
                 GIxUtils.Log(ex);
             }
 
-            //return new JsonResult(new { success= rezult, message = exception, records = 1, root = ".", children = rows });
+            
             return new JsonResult(new
             {
                 success = rezult,

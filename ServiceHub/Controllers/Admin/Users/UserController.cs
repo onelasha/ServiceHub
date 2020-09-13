@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 using JWT;
@@ -21,7 +22,49 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace ServiceHub.Controllers
 {
-    
+
+    public sealed class MyDynObject : DynamicObject
+    {
+        private readonly Dictionary<string, object> _properties;
+
+        public MyDynObject(Dictionary<string, object> properties)
+        {
+            _properties = properties;
+        }
+
+        public override IEnumerable<string> GetDynamicMemberNames()
+        {
+            return _properties.Keys;
+        }
+
+        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        {
+            if (_properties.ContainsKey(binder.Name))
+            {
+                result = _properties[binder.Name];
+                return true;
+            }
+            else
+            {
+                result = null;
+                return false;
+            }
+        }
+
+        public override bool TrySetMember(SetMemberBinder binder, object value)
+        {
+            if (_properties.ContainsKey(binder.Name))
+            {
+                _properties[binder.Name] = value;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+
     [ApiController]
     [Route("[controller]")]
     public class UserController : ControllerBase
@@ -38,21 +81,160 @@ namespace ServiceHub.Controllers
             _loginRequest = new LoginRequestJson();
         }
 
-        private dynamic dbGetUserUser(ref int totalRecordCount )
+        private dynamic dbValidateActivationToken(ref int totalRecordCount) {
+            bool initGrid = Request.Query["type"].ToString() == "initGrid" ? true : false;
+            string remoteIP = this.HttpContext.Connection.RemoteIpAddress.ToString();
+            string localIP = this.HttpContext.Connection.LocalIpAddress.ToString();
+            string activationToken = Request.Query["ActivationToken"];
+
+
+            UserModel model = new UserModel();
+            try
+            {
+                using (SqlConnection sqlConnection = new SqlConnection(
+                    GIxUtils.DecodeConnectionString(
+                        _configuration,
+                        ref _loginRequest,
+                        Request.Headers["X-WebGI-Authentication"],
+                        Request.Headers["X-WebGI-Version"])))
+                {
+                    sqlConnection.Open();
+                    using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                    {
+                        sqlCommand.Connection = sqlConnection;
+                        sqlCommand.CommandType = CommandType.StoredProcedure;
+                        sqlCommand.CommandText = "dbo.[usp_WebGI_ValidateActivationToken]";
+                        //sqlCommand.Parameters.AddWithValue("@APIKey", apiKey);
+                        sqlCommand.Parameters.AddWithValue("@IP_Local", localIP);
+                        sqlCommand.Parameters.AddWithValue("@IP_Remote", remoteIP);
+                        sqlCommand.Parameters.AddWithValue("@InitGrid", initGrid);
+                        sqlCommand.Parameters.AddWithValue("@Salt", _loginRequest.salt);
+                        sqlCommand.Parameters.AddWithValue("@Version", _loginRequest.version);
+
+                        sqlCommand.Parameters.AddWithValue("@ActivationToken", activationToken);
+
+
+                        SqlParameter outputValue = sqlCommand.Parameters.Add("@totalCount", SqlDbType.Int);
+                        outputValue.Direction = ParameterDirection.Output;
+
+                        SqlDataReader recordSet = sqlCommand.ExecuteReader();
+                        using (recordSet)
+                        {
+                            object value;
+                            if (recordSet.Read())
+                            {
+                                if ((value = recordSet[recordSet.GetOrdinal("UserId")]) != System.DBNull.Value) model.UserId = (int)value;
+                                if ((value = recordSet[recordSet.GetOrdinal("Username")]) != System.DBNull.Value) model.Username = (string)value;
+                                if ((value = recordSet[recordSet.GetOrdinal("FirstName")]) != System.DBNull.Value) model.FirstName = (string)value;
+                                if ((value = recordSet[recordSet.GetOrdinal("LastName")]) != System.DBNull.Value) model.LastName = (string)value;
+                                if ((value = recordSet[recordSet.GetOrdinal("Email")]) != System.DBNull.Value) model.Email = (string)value;
+                            }
+                            recordSet.Close();
+                            recordSet.Dispose();
+
+                            if (outputValue.Value != null)
+                                totalRecordCount = (int)outputValue.Value;
+                        }
+                    }
+
+                    sqlConnection.Close();
+                    sqlConnection.Dispose();
+                }
+            }
+
+            catch (Exception ex)
+            {
+                GIxUtils.Log(ex);
+                throw new Exception(ex.Message);
+            }
+
+            return model;
+        }
+        private dynamic dbActivateAccountToken(UserModel user, ref int totalRecordCount)
         {
             bool initGrid = Request.Query["type"].ToString() == "initGrid" ? true : false;
             string remoteIP = this.HttpContext.Connection.RemoteIpAddress.ToString();
             string localIP = this.HttpContext.Connection.LocalIpAddress.ToString();
 
-            string page = Request.Query["page"].ToString();
-            string start = Request.Query["start"].ToString();
-            string limit = Request.Query["limit"].ToString();
-            string userId = Request.Query["UserId"];
+            UserModel model = new UserModel();
+            try
+            {
+                using (SqlConnection sqlConnection = new SqlConnection(
+                    GIxUtils.DecodeConnectionString(
+                        _configuration,
+                        ref _loginRequest,
+                        Request.Headers["X-WebGI-Authentication"],
+                        Request.Headers["X-WebGI-Version"])))
+                {
+                    sqlConnection.Open();
+                    using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                    {
+                        sqlCommand.Connection = sqlConnection;
+                        sqlCommand.CommandType = CommandType.StoredProcedure;
+                        sqlCommand.CommandText = "dbo.[usp_WebGI_ActivateAccountToken]";
+                        //sqlCommand.Parameters.AddWithValue("@APIKey", apiKey);
+                        sqlCommand.Parameters.AddWithValue("@IP_Local", localIP);
+                        sqlCommand.Parameters.AddWithValue("@IP_Remote", remoteIP);
+                        sqlCommand.Parameters.AddWithValue("@InitGrid", initGrid);
+                        sqlCommand.Parameters.AddWithValue("@Salt", _loginRequest.salt);
+                        sqlCommand.Parameters.AddWithValue("@Version", _loginRequest.version);
 
+                        sqlCommand.Parameters.AddWithValue("@UserId", user.UserId);
+                        sqlCommand.Parameters.AddWithValue("@ActivationToken", user.ActivationToken);
+                        sqlCommand.Parameters.AddWithValue("@NewPassword", user.NewPassword);
+                        sqlCommand.Parameters.AddWithValue("@RePassword", user.RePassword);
+
+
+                        SqlParameter outputValue = sqlCommand.Parameters.Add("@totalCount", SqlDbType.Int);
+                        outputValue.Direction = ParameterDirection.Output;
+
+                        SqlDataReader recordSet = sqlCommand.ExecuteReader();
+                        using (recordSet)
+                        {
+                            object value;
+                            if (recordSet.Read())
+                            {
+                                //if ((value = recordSet[recordSet.GetOrdinal("UserId")]) != System.DBNull.Value) model.UserId = (int)value;
+                                //if ((value = recordSet[recordSet.GetOrdinal("Username")]) != System.DBNull.Value) model.Username = (string)value;
+                                //if ((value = recordSet[recordSet.GetOrdinal("FirstName")]) != System.DBNull.Value) model.FirstName = (string)value;
+                                //if ((value = recordSet[recordSet.GetOrdinal("LastName")]) != System.DBNull.Value) model.LastName = (string)value;
+                                //if ((value = recordSet[recordSet.GetOrdinal("Email")]) != System.DBNull.Value) model.Email = (string)value;
+                            }
+                            recordSet.Close();
+                            recordSet.Dispose();
+
+                            if (outputValue.Value != null)
+                                totalRecordCount = (int)outputValue.Value;
+                        }
+                    }
+
+                    sqlConnection.Close();
+                    sqlConnection.Dispose();
+                }
+            }
+
+            catch (Exception ex)
+            {
+                GIxUtils.Log(ex);
+                throw new Exception(ex.Message);
+            }
+
+            return model;
+        }
+        private dynamic dbGetUserUser(ref int totalRecordCount )
+        {
+            bool initGrid = Request.Query["type"].ToString() == "initGrid" ? true : false;
+            string remoteIP = this.HttpContext.Connection.RemoteIpAddress.ToString();
+            string localIP = this.HttpContext.Connection.LocalIpAddress.ToString();
+            string userId = Request.Query["UserId"];
+            string activationToken = Request.Query["ActivationToken"];
+
+            //*********************************************************
+            // If new userd and needs to activate Account
+            if (!string.IsNullOrWhiteSpace(activationToken))
+                return dbValidateActivationToken(ref totalRecordCount);
 
             UserModel model = new UserModel();
-
-            //List<dynamic> rows = new List<dynamic>();
             try
             {
                 using (SqlConnection sqlConnection = new SqlConnection(
@@ -76,7 +258,7 @@ namespace ServiceHub.Controllers
                         sqlCommand.Parameters.AddWithValue("@Version", _loginRequest.version);
 
                         sqlCommand.Parameters.AddWithValue("@UserId", userId);
-                        
+
 
                         SqlParameter outputValue = sqlCommand.Parameters.Add("@totalCount", SqlDbType.Int);
                         outputValue.Direction = ParameterDirection.Output;
@@ -143,11 +325,10 @@ namespace ServiceHub.Controllers
             string remoteIP = this.HttpContext.Connection.RemoteIpAddress.ToString();
             string localIP = this.HttpContext.Connection.LocalIpAddress.ToString();
 
-            string page = Request.Query["page"].ToString();
-            string start = Request.Query["start"].ToString();
-            string limit = Request.Query["limit"].ToString();
-            string userId = Request.Query["UserId"];
-
+            //*********************************************************
+            // If new userd and needs to activate Account
+            if (!string.IsNullOrWhiteSpace(user.ActivationToken))
+                return dbActivateAccountToken(user, ref totalRecordCount);
 
             UserModel model = new UserModel();
             try
@@ -194,6 +375,7 @@ namespace ServiceHub.Controllers
                         sqlCommand.Parameters.AddWithValue("@Code", user.Code);
                         sqlCommand.Parameters.AddWithValue("@Permissions", user.Permissions);
                         sqlCommand.Parameters.AddWithValue("@Email", user.Email);
+                        sqlCommand.Parameters.AddWithValue("@ResetOnly", user.ResetOnly);
 
                         SqlParameter outputValue = sqlCommand.Parameters.Add("@totalCount", SqlDbType.Int);
                         outputValue.Direction = ParameterDirection.Output;
@@ -302,7 +484,7 @@ namespace ServiceHub.Controllers
         }
 
         [HttpPost]
-        public JsonResult Post([FromBody] object content) 
+        public JsonResult Post([FromBody] object content)
         {
             int totalRows = 0;
             string exception = "Ok";
@@ -310,6 +492,20 @@ namespace ServiceHub.Controllers
             object rows = new { };
 
             //UserModel user = new UserModel();
+            //dynamic ob001 = new ExpandoObject();
+            var ob001 = new MyDynObject( new Dictionary<string, object>()
+            {
+                {
+                    "prop1", 12
+                },
+            });
+
+            //Console.WriteLine(dyn.prop1);
+            //ob001.prop1 = 150;
+
+            //dynamic ob002 = new ExpandoObject();
+            //ob002 = ob001;
+
 
             try
             {
@@ -320,6 +516,65 @@ namespace ServiceHub.Controllers
                     WriteIndented = true
                 };
                 UserModel user = JsonSerializer.Deserialize<UserModel>(vs, options);
+                rows = dbSetUserUser(user, ref totalRows);
+            }
+            catch (TokenExpiredException ex)
+            {
+                rezult = false;
+                exception = ex.Message;
+                GIxUtils.Log(ex);
+            }
+            catch (SignatureVerificationException ex)
+            {
+                rezult = false;
+                exception = ex.Message;
+                GIxUtils.Log(ex);
+            }
+            catch (Exception ex)
+            {
+                rezult = false;
+                exception = ex.Message;
+                Console.WriteLine(ex.Message);
+                rows = new
+                {
+                    message = exception,
+                    set = ob001
+                };
+                GIxUtils.Log(ex);
+            }
+
+            return new JsonResult(new
+            {
+                success = rezult,
+                message = exception,
+                code = 0,
+                total = 0,
+                data = rows
+            });
+        }
+
+        [HttpPut]
+        public JsonResult Put(string userId, string activationToken, string newpassword, string repassword)
+        {
+            int totalRows = 0;
+            string exception = "Ok";
+            bool rezult = true;
+            object rows = new { };
+
+            try
+            {
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = true
+                };
+                UserModel user = new UserModel() { 
+                    ActivationToken = Request.Form["ActivationToken"],
+                    UserId = Convert.ToInt32(Request.Form["UserId"]),
+                    NewPassword = Request.Form["NewPassword"],
+                    RePassword = Request.Form["RePassword"]
+
+                };//JsonSerializer.Deserialize<UserModel>(vs, options);
                 rows = dbSetUserUser(user, ref totalRows);
             }
             catch (TokenExpiredException ex)

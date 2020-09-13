@@ -88,7 +88,7 @@ namespace ServiceHub.Controllers
             }
 
             if (!rezult)
-                throw new Exception("Unauthorized access detected, Invalid access token.");
+                throw new Exception("ავტორიზაციის შეცდომა! Invalid access token.");
             return rezult;
         }
         private bool dbIssueSessionToken(ref LoginRequestJson req, ref LoginResponseJson resp) 
@@ -164,7 +164,7 @@ namespace ServiceHub.Controllers
             }
 
             if (!resp.success)
-                throw new Exception("Invalid username or password");
+                throw new Exception("პაროლი ან მომხმარებლის სახელი არასწორად არის შეყვანილი.");
             return resp.success;
         }
 
@@ -275,7 +275,7 @@ namespace ServiceHub.Controllers
                 object respojseObj_CheckBearer = new
                 {
                     success = false,
-                    message = $"Unauthenticated - {ex.Message}",
+                    message = $"{ex.Message}",
                     code = -401,
                     token = ""
                 };
