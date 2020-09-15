@@ -12,6 +12,7 @@ namespace ServiceHub.Model
         public string UserName { get; set; }
         public string UserDescription { get; set; }
         public string UserCode { get; set; }
+        public string Email { get; set; }
         public string Hostname { get; set; }
         public string LastLogginDate { get; set; }
         public bool IsMed { get; set; }

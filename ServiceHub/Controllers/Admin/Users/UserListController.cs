@@ -91,6 +91,7 @@ namespace ServiceHub.Controllers
                         sqlCommand.Parameters.AddWithValue("@userName", Request.Query["userName"].ToString());
                         sqlCommand.Parameters.AddWithValue("@userDescription", Request.Query["userDescription"].ToString());
                         sqlCommand.Parameters.AddWithValue("@userCode", Request.Query["userCode"].ToString());
+                        sqlCommand.Parameters.AddWithValue("@email", Request.Query["email"].ToString());
                         sqlCommand.Parameters.AddWithValue("@withDelete", withDelete);
                         sqlCommand.Parameters.AddWithValue("@userId", userId);
 
@@ -107,6 +108,7 @@ namespace ServiceHub.Controllers
 
                                 if (initGrid == true)
                                 {
+                                    /*
                                     GIGridColumn column = new GIGridColumn();
                                     if ((value = recordSet[recordSet.GetOrdinal("Title")]) != System.DBNull.Value) column.Title = (string)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("DataIndex")]) != System.DBNull.Value) column.DataIndex = (string)value;
@@ -125,6 +127,33 @@ namespace ServiceHub.Controllers
                                     if ((value = recordSet[recordSet.GetOrdinal("SummaryRenderer")]) != System.DBNull.Value) column.SummaryRenderer = (string)value;
                                     //rows.Add(column);
                                     giGridInitModel.ColumnList.Add(column);
+                                    */
+
+                                    GIGridColumn model = new GIGridColumn();
+                                    var properties = model.GetType().GetProperties();
+                                    foreach (var el in properties)
+                                    {
+                                        string name = el.Name;
+                                        value = recordSet[recordSet.GetOrdinal(name)];
+
+                                        if (value != System.DBNull.Value)
+                                        {
+                                            switch (el.PropertyType.Name)
+                                            {
+                                                case "Int32":
+                                                    el.SetValue(model, (int)value);
+                                                    break;
+                                                case "String":
+                                                    el.SetValue(model, (string)value);
+                                                    break;
+                                                case "Boolean":
+                                                    el.SetValue(model, (bool)value);
+                                                    break;
+                                            }
+
+                                        }
+                                    }
+                                    giGridInitModel.ColumnList.Add(model);
                                 }
                                 else
                                 {

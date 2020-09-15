@@ -8,7 +8,7 @@ namespace ServiceHub.Model
     public class SignatureListModel
     {
         public int RowNum { get; set; }
-        public int Id { get; set; }
+        public int SignatureId { get; set; }
         public string Application { get; set; }
         public string Position { get; set; }
         public string Project { get; set; }

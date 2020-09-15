@@ -191,7 +191,7 @@ namespace ServiceHub.Controllers
                         SqlDataReader recordSet = sqlCommand.ExecuteReader();
                         using (recordSet)
                         {
-                            object value;
+                            //object value;
                             if (recordSet.Read())
                             {
                                 //if ((value = recordSet[recordSet.GetOrdinal("UserId")]) != System.DBNull.Value) model.UserId = (int)value;

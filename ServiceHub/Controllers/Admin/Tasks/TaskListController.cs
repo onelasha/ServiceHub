@@ -100,24 +100,31 @@ namespace ServiceHub.Controllers
 
                                 if (initGrid == true)
                                 {
-                                    GIGridColumn column = new GIGridColumn();
-                                    if ((value = recordSet[recordSet.GetOrdinal("Title")]) != System.DBNull.Value) column.Title = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("DataIndex")]) != System.DBNull.Value) column.DataIndex = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("DisplayField")]) != System.DBNull.Value) column.DisplayField = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("ValueField")]) != System.DBNull.Value) column.ValueField = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("ValueType")]) != System.DBNull.Value) column.ValueType = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("Width")]) != System.DBNull.Value) column.Width = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("Flex")]) != System.DBNull.Value) column.Flex = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("Renderer")]) != System.DBNull.Value) column.Renderer = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsFilter")]) != System.DBNull.Value) column.IsFilter = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsNotColumn")]) != System.DBNull.Value) column.IsNotColumn = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsHidden")]) != System.DBNull.Value) column.IsHidden = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsMenuDisabled")]) != System.DBNull.Value) column.IsMenuDisabled = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsGridSummaryRow")]) != System.DBNull.Value) column.IsGridSummaryRow = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsLocked")]) != System.DBNull.Value) column.IsLocked = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("SummaryRenderer")]) != System.DBNull.Value) column.SummaryRenderer = (string)value;
+                                    GIGridColumn model = new GIGridColumn();
+                                    var properties = model.GetType().GetProperties();
+                                    foreach (var el in properties)
+                                    {
+                                        string name = el.Name;
+                                        value = recordSet[recordSet.GetOrdinal(name)];
 
-                                    giGridInitModel.ColumnList.Add(column);
+                                        if (value != System.DBNull.Value)
+                                        {
+                                            switch (el.PropertyType.Name)
+                                            {
+                                                case "Int32":
+                                                    el.SetValue(model, (int)value);
+                                                    break;
+                                                case "String":
+                                                    el.SetValue(model, (string)value);
+                                                    break;
+                                                case "Boolean":
+                                                    el.SetValue(model, (bool)value);
+                                                    break;
+                                            }
+
+                                        }
+                                    }
+                                    giGridInitModel.ColumnList.Add(model);
                                 }
                                 else
                                 {

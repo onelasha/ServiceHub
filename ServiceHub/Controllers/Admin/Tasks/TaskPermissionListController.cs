@@ -85,19 +85,43 @@ namespace ServiceHub.Controllers
                             while (recordSet.Read())
                             {
                                 UserPermissionModel model = new UserPermissionModel();
-                                if ((value = recordSet[recordSet.GetOrdinal("rootId")]) != System.DBNull.Value) model.rootId = (int)value;
-                                if ((value = recordSet[recordSet.GetOrdinal("id")]) != System.DBNull.Value) model.id = (int)value;
-                                if ((value = recordSet[recordSet.GetOrdinal("pid")]) != System.DBNull.Value) model.pid = (int)value;
-                                if ((value = recordSet[recordSet.GetOrdinal("leaf")]) != System.DBNull.Value) model.leaf = (bool)value;
-                                if ((value = recordSet[recordSet.GetOrdinal("hasAccess")]) != System.DBNull.Value) model.hasAccess = (bool)value;
-                                if ((value = recordSet[recordSet.GetOrdinal("expanded")]) != System.DBNull.Value) model.expanded = (bool)value;
-                                if ((value = recordSet[recordSet.GetOrdinal("loaded")]) != System.DBNull.Value) model.loaded = (bool)value;
-                                if ((value = recordSet[recordSet.GetOrdinal("text")]) != System.DBNull.Value) model.text = (string)value;
-                                if ((value = recordSet[recordSet.GetOrdinal("cls")]) != System.DBNull.Value) model.cls = (string)value;
-                                if ((value = recordSet[recordSet.GetOrdinal("iconCls")]) != System.DBNull.Value) model.iconCls = (string)value;
-                                if ((value = recordSet[recordSet.GetOrdinal("reference")]) != System.DBNull.Value) model.reference = (string)value;
-                                if ((value = recordSet[recordSet.GetOrdinal("url")]) != System.DBNull.Value) model.url = (string)value;
+                                //if ((value = recordSet[recordSet.GetOrdinal("rootId")]) != System.DBNull.Value) model.rootId = (int)value;
+                                //if ((value = recordSet[recordSet.GetOrdinal("id")]) != System.DBNull.Value) model.id = (int)value;
+                                //if ((value = recordSet[recordSet.GetOrdinal("pid")]) != System.DBNull.Value) model.pid = (int)value;
+                                //if ((value = recordSet[recordSet.GetOrdinal("leaf")]) != System.DBNull.Value) model.leaf = (bool)value;
+                                //if ((value = recordSet[recordSet.GetOrdinal("hasAccess")]) != System.DBNull.Value) model.hasAccess = (bool)value;
+                                //if ((value = recordSet[recordSet.GetOrdinal("expanded")]) != System.DBNull.Value) model.expanded = (bool)value;
+                                //if ((value = recordSet[recordSet.GetOrdinal("loaded")]) != System.DBNull.Value) model.loaded = (bool)value;
+                                //if ((value = recordSet[recordSet.GetOrdinal("text")]) != System.DBNull.Value) model.text = (string)value;
+                                //if ((value = recordSet[recordSet.GetOrdinal("cls")]) != System.DBNull.Value) model.cls = (string)value;
+                                //if ((value = recordSet[recordSet.GetOrdinal("iconCls")]) != System.DBNull.Value) model.iconCls = (string)value;
+                                //if ((value = recordSet[recordSet.GetOrdinal("reference")]) != System.DBNull.Value) model.reference = (string)value;
+                                //if ((value = recordSet[recordSet.GetOrdinal("url")]) != System.DBNull.Value) model.url = (string)value;
 
+                                //rows.Add(model);
+                                var properties = model.GetType().GetProperties();
+                                foreach (var el in properties)
+                                {
+                                    string name = el.Name;
+                                    value = recordSet[recordSet.GetOrdinal(name)];
+
+                                    if (value != System.DBNull.Value)
+                                    {
+                                        switch (el.PropertyType.Name)
+                                        {
+                                            case "Int32":
+                                                el.SetValue(model, (int)value);
+                                                break;
+                                            case "String":
+                                                el.SetValue(model, (string)value);
+                                                break;
+                                            case "Boolean":
+                                                el.SetValue(model, (bool)value);
+                                                break;
+                                        }
+
+                                    }
+                                }
                                 rows.Add(model);
                             }
                             recordSet.Close();

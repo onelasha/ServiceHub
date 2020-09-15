@@ -1,41 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Composition.Convention;
 using System.Data;
 using System.Data.SqlClient;
-using System.Dynamic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using JWT;
-using JWT.Algorithms;
-using JWT.Builder;
 using JWT.Exceptions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using ServiceHub.Model;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
-namespace ServiceHub.Controllers
+namespace ServiceHub.Controllers 
 {
     [Route("[controller]")]
     [ApiController]
-    public class TaskController : ControllerBase
+    public class SignatureController : ControllerBase
     {
         private LoginRequestJson _loginRequest;
-        private readonly ILogger<TaskController> _logger;
+        private readonly ILogger<SignatureController> _logger;
         private readonly IConfiguration _configuration;
 
-        public TaskController(ILogger<TaskController> logger, IConfiguration configuration)
+        public SignatureController(ILogger<SignatureController> logger, IConfiguration configuration)
         {
             _logger = logger;
             _configuration = configuration;
             _loginRequest = new LoginRequestJson();
         }
-        private dynamic dbGetTask(ref int totalRecordCount)
+        private dynamic dbGetSignature(ref int totalRecordCount)
         {
             bool initGrid = Request.Query["type"].ToString() == "initGrid" ? true : false;
             string remoteIP = this.HttpContext.Connection.RemoteIpAddress.ToString();
@@ -44,12 +37,9 @@ namespace ServiceHub.Controllers
             string page = Request.Query["page"].ToString();
             string start = Request.Query["start"].ToString();
             string limit = Request.Query["limit"].ToString();
-            string taskId = Request.Query["taskId"];
+            string signatureId = Request.Query["SignatureId"];
 
-
-            TaskModel model = new TaskModel();
-
-            //List<dynamic> rows = new List<dynamic>();
+            SignatureModel model = new SignatureModel();
             try
             {
                 using (SqlConnection sqlConnection = new SqlConnection(
@@ -64,7 +54,7 @@ namespace ServiceHub.Controllers
                     {
                         sqlCommand.Connection = sqlConnection;
                         sqlCommand.CommandType = CommandType.StoredProcedure;
-                        sqlCommand.CommandText = "dbo.[usp_WebGI_GetTask]";
+                        sqlCommand.CommandText = "dbo.[usp_WebGI_GetSignature]";
                         //sqlCommand.Parameters.AddWithValue("@APIKey", apiKey);
                         sqlCommand.Parameters.AddWithValue("@IP_Local", localIP);
                         sqlCommand.Parameters.AddWithValue("@IP_Remote", remoteIP);
@@ -72,7 +62,7 @@ namespace ServiceHub.Controllers
                         sqlCommand.Parameters.AddWithValue("@Salt", _loginRequest.salt);
                         sqlCommand.Parameters.AddWithValue("@Version", _loginRequest.version);
 
-                        sqlCommand.Parameters.AddWithValue("@TaskId", taskId);
+                        sqlCommand.Parameters.AddWithValue("@SignatureId", signatureId);
 
 
                         SqlParameter outputValue = sqlCommand.Parameters.Add("@totalCount", SqlDbType.Int);
@@ -84,8 +74,33 @@ namespace ServiceHub.Controllers
                             object value;
                             if (recordSet.Read())
                             {
-                                if ((value = recordSet[recordSet.GetOrdinal("TaskId")]) != System.DBNull.Value) model.TaskId = (int)value;
-                                if ((value = recordSet[recordSet.GetOrdinal("TaskName")]) != System.DBNull.Value) model.TaskName = (string)value;
+                                var properties = model.GetType().GetProperties();
+                                foreach (var el in properties)
+                                {
+                                    string name = el.Name;
+                                    value = recordSet[recordSet.GetOrdinal(name)];
+
+                                    if (value != System.DBNull.Value)
+                                    {
+                                        switch (el.PropertyType.Name)
+                                        {
+                                            case "Int32":
+                                                el.SetValue(model, (int)value);
+                                                break;
+                                            case "String":
+                                                el.SetValue(model, (string)value);
+                                                break;
+                                            case "Boolean":
+                                                el.SetValue(model, (bool)value);
+                                                break;
+                                            case "Decimal":
+                                            //case "Nullable'1":
+                                                el.SetValue(model, (decimal)value);
+                                                break;
+                                        }
+
+                                    }
+                                }
                             }
                             recordSet.Close();
                             recordSet.Dispose();
@@ -108,19 +123,13 @@ namespace ServiceHub.Controllers
 
             return model;
         }
-        private dynamic dbSetTask(TaskModel task, ref int totalRecordCount)
+        private dynamic dbSetSignature(SignatureModel task, ref int totalRecordCount)
         {
             bool initGrid = Request.Query["type"].ToString() == "initGrid" ? true : false;
             string remoteIP = this.HttpContext.Connection.RemoteIpAddress.ToString();
             string localIP = this.HttpContext.Connection.LocalIpAddress.ToString();
 
-            string page = Request.Query["page"].ToString();
-            string start = Request.Query["start"].ToString();
-            string limit = Request.Query["limit"].ToString();
-            string taskId = Request.Query["taskId"];
-
-
-            TaskModel model = new TaskModel();
+            SignatureModel model = new SignatureModel();
             try
             {
                 using (SqlConnection sqlConnection = new SqlConnection(
@@ -135,7 +144,7 @@ namespace ServiceHub.Controllers
                     {
                         sqlCommand.Connection = sqlConnection;
                         sqlCommand.CommandType = CommandType.StoredProcedure;
-                        sqlCommand.CommandText = "dbo.[usp_WebGI_SetTask]";
+                        sqlCommand.CommandText = "dbo.[usp_WebGI_SetSignature]";
                         //sqlCommand.Parameters.AddWithValue("@APIKey", apiKey);
                         sqlCommand.Parameters.AddWithValue("@IP_Local", localIP);
                         sqlCommand.Parameters.AddWithValue("@IP_Remote", remoteIP);
@@ -143,9 +152,10 @@ namespace ServiceHub.Controllers
                         sqlCommand.Parameters.AddWithValue("@Salt", _loginRequest.salt);
                         sqlCommand.Parameters.AddWithValue("@Version", _loginRequest.version);
 
-                        sqlCommand.Parameters.AddWithValue("@TaskId", task.TaskId);
-                        sqlCommand.Parameters.AddWithValue("@TaskName", task.TaskName);
-                        sqlCommand.Parameters.AddWithValue("@Permissions", task.Permissions);
+                        sqlCommand.Parameters.AddWithValue("@SignatureId", task.SignatureId);
+                        sqlCommand.Parameters.AddWithValue("@Level", task.Level);
+                        sqlCommand.Parameters.AddWithValue("@MinAmount", task.MinAmount);
+                        sqlCommand.Parameters.AddWithValue("@MaxAmount", task.MaxAmount);
 
                         SqlParameter outputValue = sqlCommand.Parameters.Add("@totalCount", SqlDbType.Int);
                         outputValue.Direction = ParameterDirection.Output;
@@ -156,8 +166,7 @@ namespace ServiceHub.Controllers
                             object value;
                             if (recordSet.Read())
                             {
-                                if ((value = recordSet[recordSet.GetOrdinal("TaskId")]) != System.DBNull.Value) model.TaskId = (int)value;
-                                if ((value = recordSet[recordSet.GetOrdinal("TaskName")]) != System.DBNull.Value) model.TaskName = (string)value;
+                                if ((value = recordSet[recordSet.GetOrdinal("SignatureId")]) != System.DBNull.Value) model.SignatureId = (int)value;
                             }
                             recordSet.Close();
                             recordSet.Dispose();
@@ -192,7 +201,7 @@ namespace ServiceHub.Controllers
 
             try
             {
-                rows = dbGetTask(ref totalRows);
+                rows = dbGetSignature(ref totalRows);
             }
             catch (TokenExpiredException ex)
             {
@@ -218,7 +227,7 @@ namespace ServiceHub.Controllers
                 GIxUtils.Log(ex);
             }
 
-            
+
             return new JsonResult(new
             {
                 success = rezult,
@@ -247,8 +256,8 @@ namespace ServiceHub.Controllers
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                     WriteIndented = true
                 };
-                TaskModel task = JsonSerializer.Deserialize<TaskModel>(vs, options);
-                rows = dbSetTask(task, ref totalRows);
+                SignatureModel task = JsonSerializer.Deserialize<SignatureModel>(vs, options);
+                rows = dbSetSignature(task, ref totalRows);
             }
             catch (TokenExpiredException ex)
             {
@@ -283,7 +292,5 @@ namespace ServiceHub.Controllers
                 data = rows
             });
         }
-
-        
     }
 }
