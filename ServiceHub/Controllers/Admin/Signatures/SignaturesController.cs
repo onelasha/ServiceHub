@@ -153,6 +153,9 @@ namespace ServiceHub.Controllers
                         sqlCommand.Parameters.AddWithValue("@Version", _loginRequest.version);
 
                         sqlCommand.Parameters.AddWithValue("@SignatureId", task.SignatureId);
+                        sqlCommand.Parameters.AddWithValue("@DocTypeId", task.DocTypeId);
+                        sqlCommand.Parameters.AddWithValue("@ProjectId", task.ProjectId);
+                        sqlCommand.Parameters.AddWithValue("@PositionId", task.PositionId);
                         sqlCommand.Parameters.AddWithValue("@Level", task.Level);
                         sqlCommand.Parameters.AddWithValue("@MinAmount", task.MinAmount);
                         sqlCommand.Parameters.AddWithValue("@MaxAmount", task.MaxAmount);

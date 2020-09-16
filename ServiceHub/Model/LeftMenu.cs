@@ -17,6 +17,7 @@ namespace ServiceHub.Model
         public string iconCls { get; set; }
         public bool isMenu { get; set; }
         public bool isMenuGroup { get; set; }
+        public bool isDashboard { get; set; }
         public bool Checked{ get; set; }
         public string reference { get; set; }
         public string url { get; set; }

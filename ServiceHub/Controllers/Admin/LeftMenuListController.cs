@@ -109,6 +109,7 @@ namespace ServiceHub.Controllers
                                     if ((value = recordSet[recordSet.GetOrdinal("iconCls")]) != System.DBNull.Value) model.iconCls = (string)value;
 
                                     if ((value = recordSet[recordSet.GetOrdinal("isMenuGroup")]) != System.DBNull.Value) model.isMenuGroup = (bool)value;
+                                    if ((value = recordSet[recordSet.GetOrdinal("isDashboard")]) != System.DBNull.Value) model.isDashboard = (bool)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("reference")]) != System.DBNull.Value) model.reference = (string)value;
                                     if ((value = recordSet[recordSet.GetOrdinal("url")]) != System.DBNull.Value) model.url = (string)value;
 
@@ -155,6 +156,7 @@ namespace ServiceHub.Controllers
                             iconCls = i.iconCls,
                             text = i.text,
                             url = i.url,
+                            isDashboard = i.isDashboard,
                             reference = i.reference,
                             children = (from j in rows
                                         where j.pid == i.id
@@ -172,6 +174,7 @@ namespace ServiceHub.Controllers
                                             text = j.text,
                                             url = j.url,
                                             reference = j.reference,
+                                            isDashboard = j.isDashboard,
                                             children = null
                                         })
                         };
