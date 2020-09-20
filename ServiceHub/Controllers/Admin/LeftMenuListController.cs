@@ -148,7 +148,7 @@ namespace ServiceHub.Controllers
                         {
                             rootId = i.rootId,
                             id = i.id,
-                            Checked = true,
+                            //Checked = true,
                             pid = i.pid,
                             loaded = i.loaded,
                             expanded = i.expanded,
@@ -164,7 +164,7 @@ namespace ServiceHub.Controllers
                                         select new LeftMenu()
                                         {
                                             id = j.id,
-                                            Checked = true,
+                                            //Checked = true,
                                             pid = j.pid,
                                             rootId = j.rootId,
                                             loaded = j.loaded,

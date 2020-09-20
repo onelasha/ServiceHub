@@ -18,7 +18,13 @@ namespace ServiceHub.Model
         public bool isMenu { get; set; }
         public bool isMenuGroup { get; set; }
         public bool isDashboard { get; set; }
-        public bool Checked{ get; set; }
+        //**********************************
+        /// <summary>
+        ///     . Use this field if you'd like to 
+        ///         display checkboxes on tree
+        /// </summary>
+        //public bool Checked{ get; set; }
+        //**********************************
         public string reference { get; set; }
         public string url { get; set; }
         public IEnumerable<dynamic> children { get; set; }
