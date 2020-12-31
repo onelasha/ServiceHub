@@ -20,7 +20,7 @@ namespace ServiceHub.Controllers
 {
 
     [ApiController]
-    [Route("[controller]")]
+    //[Route("[controller]")]
     public class ReestrContractListController : ControllerBase
     {
 
@@ -163,6 +163,15 @@ namespace ServiceHub.Controllers
 
 
         [HttpGet]
+        [Route("ReestrContractList/GetTest")]
+        public JsonResult GetTest()
+        {
+            return null;
+        }
+
+
+        [HttpGet]
+        [Route("ReestrContractList")]
         public JsonResult Get()
         {
 
