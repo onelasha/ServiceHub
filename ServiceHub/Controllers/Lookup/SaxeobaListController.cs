@@ -73,6 +73,7 @@ namespace ServiceHub.Controllers
                         //sqlCommand.Parameters.AddWithValue("@APIKey", apiKey);
                         sqlCommand.Parameters.AddWithValue("@IP_Local", localIP);
                         sqlCommand.Parameters.AddWithValue("@IP_Remote", remoteIP);
+                        sqlCommand.Parameters.AddWithValue("@IsUtil", isUtil);
                         sqlCommand.Parameters.AddWithValue("@InitGrid", initGrid);
                         sqlCommand.Parameters.AddWithValue("@ExportGrid", exportGrid);
 
@@ -100,33 +101,47 @@ namespace ServiceHub.Controllers
                             object value;
                             while (recordSet.Read())
                             {
+                                dynamic model = null;
+                                if (initGrid == true)
+                                    model = new GIGridColumn();
+                                else
+                                    model = new GILookupModel(); ///////////////// !!!!!!!! //////////
+
+                                var properties = model.GetType().GetProperties();
+                                foreach (var el in properties)
+                                {
+                                    string name = el.Name;
+                                    value = recordSet[recordSet.GetOrdinal(name)];
+                                    if (value != System.DBNull.Value)
+                                    {
+                                        switch (el.PropertyType.Name)
+                                        {
+                                            case "Int32":
+                                                el.SetValue(model, (int)value);
+                                                break;
+                                            case "String":
+                                                el.SetValue(model, (string)value);
+                                                break;
+                                            case "Boolean":
+                                                el.SetValue(model, (bool)value);
+                                                break;
+                                            case "Decimal":
+                                                el.SetValue(model, (decimal)value);
+                                                break;
+                                            case "DateTime":
+                                                el.SetValue(model, (DateTime)value);
+                                                break;
+                                        }
+
+                                    }
+                                }
 
                                 if (initGrid == true)
-                                {
-                                    GIGridColumn column = new GIGridColumn();
-                                    if ((value = recordSet[recordSet.GetOrdinal("Title")]) != System.DBNull.Value) column.Title = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("DataIndex")]) != System.DBNull.Value) column.DataIndex = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("ValueType")]) != System.DBNull.Value) column.ValueType = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("Width")]) != System.DBNull.Value) column.Width = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("Flex")]) != System.DBNull.Value) column.Flex = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("Renderer")]) != System.DBNull.Value) column.Renderer = (string)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsFilter")]) != System.DBNull.Value) column.IsFilter = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsNotColumn")]) != System.DBNull.Value) column.IsNotColumn = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsHidden")]) != System.DBNull.Value) column.IsHidden = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsMenuDisabled")]) != System.DBNull.Value) column.IsMenuDisabled = (bool)value; 
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsGridSummaryRow")]) != System.DBNull.Value) column.IsGridSummaryRow = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("IsLocked")]) != System.DBNull.Value) column.IsLocked = (bool)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("SummaryRenderer")]) != System.DBNull.Value) column.SummaryRenderer = (string)value;
-
-                                    giGridInitModel.ColumnList.Add(column);
-                                }
-                                else {
-                                    GILookupModel model = new GILookupModel();
-                                    if ((value = recordSet[recordSet.GetOrdinal("Id")]) != System.DBNull.Value) model.Id = (int)value;
-                                    if ((value = recordSet[recordSet.GetOrdinal("Description")]) != System.DBNull.Value) model.Description = (string)value;
+                                    giGridInitModel.ColumnList.Add(model);
+                                else
                                     rows.Add(model);
-                                }
                             }
+
                             if (initGrid == true && recordSet.NextResult() && recordSet.Read())
                             {
                                 if ((value = recordSet[recordSet.GetOrdinal("Title")]) != System.DBNull.Value) giGridInitModel.Title = (string)value;
@@ -139,6 +154,52 @@ namespace ServiceHub.Controllers
                             if (outputValue.Value != null)
                                 totalRecordCount = (int)outputValue.Value;
                         }
+
+                        //SqlDataReader recordSet = sqlCommand.ExecuteReader();
+                        //using (recordSet)
+                        //{
+                        //    object value;
+                        //    while (recordSet.Read())
+                        //    {
+
+                        //        if (initGrid == true)
+                        //        {
+                        //            GIGridColumn column = new GIGridColumn();
+                        //            if ((value = recordSet[recordSet.GetOrdinal("Title")]) != System.DBNull.Value) column.Title = (string)value;
+                        //            if ((value = recordSet[recordSet.GetOrdinal("DataIndex")]) != System.DBNull.Value) column.DataIndex = (string)value;
+                        //            if ((value = recordSet[recordSet.GetOrdinal("ValueType")]) != System.DBNull.Value) column.ValueType = (string)value;
+                        //            if ((value = recordSet[recordSet.GetOrdinal("Width")]) != System.DBNull.Value) column.Width = (string)value;
+                        //            if ((value = recordSet[recordSet.GetOrdinal("Flex")]) != System.DBNull.Value) column.Flex = (string)value;
+                        //            if ((value = recordSet[recordSet.GetOrdinal("Renderer")]) != System.DBNull.Value) column.Renderer = (string)value;
+                        //            if ((value = recordSet[recordSet.GetOrdinal("IsFilter")]) != System.DBNull.Value) column.IsFilter = (bool)value;
+                        //            if ((value = recordSet[recordSet.GetOrdinal("IsNotColumn")]) != System.DBNull.Value) column.IsNotColumn = (bool)value;
+                        //            if ((value = recordSet[recordSet.GetOrdinal("IsHidden")]) != System.DBNull.Value) column.IsHidden = (bool)value;
+                        //            if ((value = recordSet[recordSet.GetOrdinal("IsMenuDisabled")]) != System.DBNull.Value) column.IsMenuDisabled = (bool)value; 
+                        //            if ((value = recordSet[recordSet.GetOrdinal("IsGridSummaryRow")]) != System.DBNull.Value) column.IsGridSummaryRow = (bool)value;
+                        //            if ((value = recordSet[recordSet.GetOrdinal("IsLocked")]) != System.DBNull.Value) column.IsLocked = (bool)value;
+                        //            if ((value = recordSet[recordSet.GetOrdinal("SummaryRenderer")]) != System.DBNull.Value) column.SummaryRenderer = (string)value;
+
+                        //            giGridInitModel.ColumnList.Add(column);
+                        //        }
+                        //        else {
+                        //            GILookupModel model = new GILookupModel();
+                        //            if ((value = recordSet[recordSet.GetOrdinal("Id")]) != System.DBNull.Value) model.Id = (int)value;
+                        //            if ((value = recordSet[recordSet.GetOrdinal("Description")]) != System.DBNull.Value) model.Description = (string)value;
+                        //            rows.Add(model);
+                        //        }
+                        //    }
+                        //    if (initGrid == true && recordSet.NextResult() && recordSet.Read())
+                        //    {
+                        //        if ((value = recordSet[recordSet.GetOrdinal("Title")]) != System.DBNull.Value) giGridInitModel.Title = (string)value;
+                        //        if ((value = recordSet[recordSet.GetOrdinal("Toolbar")]) != System.DBNull.Value) giGridInitModel.Toolbar = (string)value;
+                        //    }
+
+                        //    recordSet.Close();
+                        //    recordSet.Dispose();
+
+                        //    if (outputValue.Value != null)
+                        //        totalRecordCount = (int)outputValue.Value;
+                        //}
                     }
 
                     sqlConnection.Close();
